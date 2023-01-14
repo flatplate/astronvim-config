@@ -53,9 +53,9 @@ local config = {
 
   -- Override highlight groups in any theme
   highlights = {
-    -- duskfox = { -- a table of overrides
-    --   Normal = { bg = "#000000" },
-    -- },
+    duskfox = { -- a table of overrides
+      Normal = { bg = "#000000" },
+    },
     default_theme = function(highlights) -- or a function that returns one
       local C = require "default_theme.colors"
 
@@ -69,7 +69,11 @@ local config = {
     opt = {
       relativenumber = true, -- sets vim.opt.relativenumber
       ignorecase = true,
-      guifont = "JetBrainsMono Nerd Font Mono:h12",
+      guifont = "JetBrainsMono Nerd Font Mono:h11",
+      foldmethod = "indent",
+      foldenable = false,
+      colorcolumn= "120",
+      ut=4000,
     },
     g = {
       mapleader = " ", -- sets vim.g.mapleader
@@ -89,7 +93,7 @@ local config = {
     plugins = { -- enable or disable extra plugin highlighting
       aerial = true,
       beacon = false,
-      bufferline = true,
+      bufferline = false,
       dashboard = true,
       highlighturl = true,
       hop = false,
@@ -114,7 +118,7 @@ local config = {
   },
 
   -- Configure plugins
-  -- #plugins
+  -- PLUGINS
   plugins = {
     -- Add plugins, the packer syntax without the "use"
     init = {
@@ -122,6 +126,124 @@ local config = {
       -- ["goolord/alpha-nvim"] = { disable = true },
 
       -- You can also add new plugins here as well:
+      { "Yazeed1s/oh-lucy.nvim" },
+      -- { "mfussenegger/nvim-dap" },
+      { "github/copilot.vim" },
+    --   { "leoluz/nvim-dap-go", config=function()
+    --     require('dap-go').setup()
+    --     local dap = require "dap"
+    --     dap.adapters.go = function(callback, config)
+    --       local stdout = vim.loop.new_pipe(false)
+    --       local handle
+    --       local pid_or_err
+    --       local port = 38697
+    --       local opts = {
+    --         stdio = {nil, stdout},
+    --         args = {"dap", "-l", "127.0.0.1:" .. port},
+    --         detached = true
+    --       }
+    --       handle, pid_or_err = vim.loop.spawn("dlv", opts, function(code)
+    --         stdout:close()
+    --         handle:close()
+    --         if code ~= 0 then
+    --           print('dlv exited with code', code)
+    --         end
+    --       end)
+    --       assert(handle, 'Error running dlv: ' .. tostring(pid_or_err))
+    --       stdout:read_start(function(err, chunk)
+    --         assert(not err, err)
+    --         if chunk then
+    --           vim.schedule(function()
+    --             require('dap.repl').append(chunk)
+    --           end)
+    --         end
+    --       end)
+    --       -- Wait for delve to start
+    --       vim.defer_fn(
+    --       function()
+    --         callback({type = "server", host = "127.0.0.1", port = port})
+    --       end,
+    --       100)
+    --     end
+    --     -- https://github.com/go-delve/delve/blob/master/Documentation/usage/dlv_dap.md
+    --     dap.configurations.go = {
+    --       {
+    --         type = "go",
+    --         name = "Debug",
+    --         request = "launch",
+    --         program = "${file}"
+    --       },
+    --       {
+    --         type = "go",
+    --         name = "Debug test", -- configuration for debugging test files
+    --         request = "launch",
+    --         mode = "test",
+    --         program = "${file}"
+    --       },
+    --       -- works with go.mod packages and sub packages 
+    --       {
+    --         type = "go",
+    --         name = "Debug test (go.mod)",
+    --         request = "launch",
+    --         mode = "test",
+    --         program = "./${relativeFileDirname}"
+    --       } 
+    --     }
+    --   end
+    -- },
+    -- { "rcarriga/nvim-dap-ui", config = function() 
+    --   require("dapui").setup({
+    --     icons = { expanded = "▾", collapsed = "▸" },
+    --     mappings = {
+    --       -- Use a table to apply multiple mappings
+    --       expand = { "<CR>", "<2-LeftMouse>" },
+    --       open = "o",
+    --       remove = "d",
+    --       edit = "e",
+    --       repl = "r",
+    --       },
+    --       sidebar = {
+    --         -- You can change the order of elements in the sidebar
+    --         elements = {
+    --           -- Provide as ID strings or tables with "id" and "size" keys
+    --           {
+    --             id = "scopes",
+    --             size = 0.25, -- Can be float or integer > 1
+    --           },
+    --           { id = "breakpoints", size = 0.25 },
+    --           { id = "stacks", size = 0.25 },
+    --           { id = "watches", size = 00.25 },
+    --         },
+    --         size = 40,
+    --         position = "left", -- Can be "left", "right", "top", "bottom"
+    --       },
+    --       tray = {
+    --         elements = { "repl" },
+    --         size = 10,
+    --         position = "bottom", -- Can be "left", "right", "top", "bottom"
+    --       },
+    --       floating = {
+    --         max_height = nil, -- These can be integers or a float between 0 and 1.
+    --         max_width = nil, -- Floats will be treated as percentage of your screen.
+    --         border = "single", -- Border style. Can be "single", "double" or "rounded"
+    --         mappings = {
+    --           close = { "q", "<Esc>" },
+    --         },
+    --       },
+    --       windows = { indent = 1 },
+    --     })
+    --
+    --   end },
+      { 
+        "ThePrimeagen/harpoon",
+        config = function()
+          require("harpoon").setup({
+              menu = {
+                  width = vim.api.nvim_win_get_width(0) - 4,
+              }
+          })
+        end
+      },
       {
         "cshuaimin/ssr.nvim",
         module = "ssr",
@@ -334,6 +456,11 @@ local config = {
           require('telescope.builtin').live_grep(getTelescopeOpts(state, path))
         end
       }
+      config.filesystem.filtered_items = {
+        visible = true,
+        hide_dotfiles = false,
+        hide_gitignored = false,
+      }
       return config
     end,
     treesitter = {
@@ -441,7 +568,7 @@ local config = {
     -- first key is the mode
     n = {
       -- second key is the lefthand side of the map
-      ["<C-s>"] = { ":w!<cr>", desc = "Save File" },
+      ["<C-s>"] = { ":wa!<cr>", desc = "Save File" },
       ["<C-p>"] = { "\"qp", desc = "Paste from register q" },
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
       ['<c-cr>'] = { function() vim.lsp.buf.code_action() end },
@@ -449,6 +576,9 @@ local config = {
       ['<c-tab>'] = { ":b#<cr>" },
       ['<c-`>'] = { function() require('telescope.builtin').marks({ sort_lastused = true }) end },
       ['<leader>a'] = {":ArgWrap<cr>"},
+      ['<leader>df'] = {":GoPrintlnFileLine<CR>"}, -- TODO Make this only work in go files
+      ['<c-m>'] = {":cp<cr><cr>"},
+      ['<c-n>'] = {":cn<cr><cr>"},
       ['<leader>ff'] = {":Telescope find_files hidden=true<CR>"},
       ['<leader>fi'] = { function()
           vim.cmd('noau normal! "zyiw"')
@@ -457,9 +587,14 @@ local config = {
       ['<leader>fr'] = {":Telescope resume<CR>"},
       ['<leader>gl'] = {":Git blame<CR>"},
       ['gv'] = {":vsplit<CR>gd"},
-      ['<leader>sr'] = {'yiw:%s/<C-R>*'}
+      ['<leader>sr'] = {'yiw:%s/<C-R>*'},
+      ['<leader>ss'] = {'yiw:s/<C-R>*/'},
+      ['<leader>ci'] = { "<Plug>(copilot-suggest)"},
+      ['<leader>bb'] = {function() require("harpoon.mark").add_file() end},
+      ['<c-1>'] = {function() require("harpoon.ui").toggle_quick_menu() end}
       -- TODO Some keybinding for search and replace word under cursor: 
       -- ['<c-g>'] = {"<space>gg"}, I tried to use c-g for opening the lazy git window because escaping inside the window is tricky
+      -- TODO Telescope grep in files in the quickfix list
     },
     t = {
       -- setting a mapping to false will disable it
@@ -469,6 +604,7 @@ local config = {
       ["<C-p>"] = { "<esc>:Telescope oldfiles<CR>", desc = "Save File" },
       ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true, ignore_current_buffer = true }) end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
+      ['<c-k>i'] = { "<Plug>(copilot-suggest)"},
       -- ['<c-g>'] = {"<esc>gg"},
     },
 
@@ -482,6 +618,7 @@ local config = {
         vim.cmd('noau visual! "zy"')
         require('telescope.builtin').grep_string({search = vim.fn.getreg("z")})
       end },
+      ['<c-cr>'] = { function() vim.lsp.buf.range_code_action() end },
     }
   },
 
@@ -497,6 +634,31 @@ local config = {
       pattern = "plugins.lua",
       command = "source <afile> | PackerSync",
     })
+    -- vim.api.nvim_create_autocmd("CursorHold,CursorHoldI,BufLeave", {
+    --   desc = "Auto save buffer",
+    --   command = "noa update",
+    -- })
+    vim.api.nvim_create_user_command('CopyLines', function(opts) 
+      vim.cmd('noau visual! qaq')
+      vim.cmd('g/' .. opts.args .. '/y A')
+      vim.cmd('let @+ = @a')
+    end, { nargs = 1 } )
+
+    vim.api.nvim_create_user_command('GoPrintlnFileLine', function(opts) 
+      local path = vim.fn.getreg("%")
+      local file = path:match( "([^/]+)$" )
+
+      local line_num = vim.api.nvim_win_get_cursor(0)[1]
+
+      vim.cmd("let @z=\"" .. file .. ":" .. line_num .. "\"")
+      vim.cmd("execute \"normal ofmt.Println(\\\"\"")
+      vim.cmd("execute \"normal\\\"zp\"")
+      vim.cmd("execute \"i\\\")\"")
+
+    end, { nargs = 0 } )
+    -- TODO Create an autocommand for autosave 
+    -- context:  https://vi.stackexchange.com/questions/74/is-it-possible-to-make-vim-auto-save-files
+    -- autocmd CursorHold,CursorHoldI * update
   end,
 }
 
