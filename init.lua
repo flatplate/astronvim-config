@@ -21,6 +21,44 @@ local function getTelescopeOpts(state, path)
 end
 
 local config = {
+  icons = {
+    VimIcon = "",
+    ScrollText = "",
+    GitBranch = "",
+    GitAdd = "",
+    GitChange = "",
+    GitDelete = "",
+  },
+  heirline = {
+    -- define the separators between each section
+    separators = {
+      left = { "", " " }, -- separator for the left side of the statusline
+      right = { " ", "" }, -- separator for the right side of the statusline
+    },
+    -- add new colors that can be used by heirline
+    colors = function(hl)
+      -- use helper function to get highlight group properties
+      local comment_fg = astronvim.get_hlgroup("Comment").fg
+      hl.git_branch_fg = comment_fg
+      hl.git_added = comment_fg
+      hl.git_changed = comment_fg
+      hl.git_removed = comment_fg
+      hl.blank_bg = astronvim.get_hlgroup("Folded").fg
+      hl.file_info_bg = astronvim.get_hlgroup("Visual").bg
+      hl.nav_icon_bg = astronvim.get_hlgroup("String").fg
+      hl.nav_fg = hl.nav_icon_bg
+      hl.folder_icon_bg = astronvim.get_hlgroup("Error").fg
+      return hl
+    end,
+    attributes = {
+      mode = { bold = true },
+    },
+    icon_highlights = {
+      file_icon = {
+        statusline = false,
+      },
+    },
+  },
   header = {
     ' ███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗',
     ' ████╗  ██║ ██╔════╝██╔═══██╗ ██║   ██║ ██║ ████╗ ████║',
@@ -125,115 +163,121 @@ local config = {
       -- ["goolord/alpha-nvim"] = { disable = true },
 
       -- You can also add new plugins here as well:
-      { "rebelot/heirline.nvim", commit = "556666a" },
+      { "rebelot/heirline.nvim", commit = "556666a", config = function(config)
+        -- the first element of the configuration table is the statusline
+        config[1] = {
+          -- default highlight for the entire statusline
+          hl = { fg = "fg", bg = "bg" },
+          -- each element following is a component in astronvim.status module
+
+          -- add the vim mode component
+          astronvim.status.component.mode {
+            -- enable mode text with padding as well as an icon before it
+            mode_text = { icon = { kind = "VimIcon", padding = { right = 1, left = 1 } } },
+            -- surround the component with a separators
+            surround = {
+              -- it's a left element, so use the left separator
+              separator = "left",
+              -- set the color of the surrounding based on the current mode using astronvim.status module
+              color = function() return { main = astronvim.status.hl.mode_bg(), right = "blank_bg" } end,
+            },
+          },
+          -- we want an empty space here so we can use the component builder to make a new section with just an empty string
+          astronvim.status.component.builder {
+            { provider = "" },
+            -- define the surrounding separator and colors to be used inside of the component
+            -- and the color to the right of the separated out section
+            surround = { separator = "left", color = { main = "blank_bg", right = "file_info_bg" } },
+          },
+          -- add a section for the currently opened file information
+          astronvim.status.component.file_info {
+            -- enable the file_icon and disable the highlighting based on filetype
+            file_icon = { padding = { left = 0 } },
+            filename = { fallback = "Empty" },
+            -- add padding
+            padding = { right = 1 },
+            -- define the section separator
+            surround = { separator = "left", condition = false },
+          },
+          -- add a component for the current git branch if it exists and use no separator for the sections
+          astronvim.status.component.git_branch { surround = { separator = "none" } },
+          -- add a component for the current git diff if it exists and use no separator for the sections
+          astronvim.status.component.git_diff { padding = { left = 1 }, surround = { separator = "none" } },
+          -- fill the rest of the statusline
+          -- the elements after this will appear in the middle of the statusline
+          astronvim.status.component.fill(),
+          -- add a component to display if the LSP is loading, disable showing running client names, and use no separator
+          astronvim.status.component.lsp { lsp_client_names = false, surround = { separator = "none", color = "bg" } },
+          -- fill the rest of the statusline
+          -- the elements after this will appear on the right of the statusline
+          astronvim.status.component.fill(),
+          -- add a component for the current diagnostics if it exists and use the right separator for the section
+          astronvim.status.component.diagnostics { surround = { separator = "right" } },
+          -- add a component to display LSP clients, disable showing LSP progress, and use the right separator
+          astronvim.status.component.lsp { lsp_progress = false, surround = { separator = "right" } },
+          -- NvChad has some nice icons to go along with information, so we can create a parent component to do this
+          -- all of the children of this table will be treated together as a single component
+          {
+            -- define a simple component where the provider is just a folder icon
+            astronvim.status.component.builder {
+              -- astronvim.get_icon gets the user interface icon for a closed folder with a space after it
+              { provider = astronvim.get_icon "FolderClosed" },
+              -- add padding after icon
+              padding = { right = 1 },
+              -- set the foreground color to be used for the icon
+              hl = { fg = "bg" },
+              -- use the right separator and define the background color
+              surround = { separator = "right", color = "folder_icon_bg" },
+            },
+            -- add a file information component and only show the current working directory name
+            astronvim.status.component.file_info {
+              -- we only want filename to be used and we can change the fname
+              -- function to get the current working directory name
+              filename = { fname = function(nr) return vim.fn.getcwd(nr) end, padding = { left = 1 } },
+              -- disable all other elements of the file_info component
+              file_icon = false,
+              file_modified = false,
+              file_read_only = false,
+              -- use no separator for this part but define a background color
+              surround = { separator = "none", color = "file_info_bg", condition = false },
+            },
+          },
+          -- the final component of the NvChad statusline is the navigation section
+          -- this is very similar to the previous current working directory section with the icon
+          { -- make nav section with icon border
+            -- define a custom component with just a file icon
+            astronvim.status.component.builder {
+              { provider = astronvim.get_icon "ScrollText" },
+              -- add padding after icon
+              padding = { right = 1 },
+              -- set the icon foreground
+              hl = { fg = "bg" },
+              -- use the right separator and define the background color
+              -- as well as the color to the left of the separator
+              surround = { separator = "right", color = { main = "nav_icon_bg", left = "file_info_bg" } },
+            },
+            -- add a navigation component and just display the percentage of progress in the file
+            astronvim.status.component.nav {
+              -- add some padding for the percentage provider
+              percentage = { padding = { right = 1 } },
+              -- disable all other providers
+              ruler = false,
+              scrollbar = false,
+              -- use no separator and define the background color
+              surround = { separator = "none", color = "file_info_bg" },
+            },
+          },
+        }
+
+        -- a second element in the heirline setup would override the winbar
+        -- by only providing a single element we will only override the statusline
+        -- and use the default winbar in AstroNvim
+
+        -- return the final confiuration table
+        return config
+      end },
       { "Yazeed1s/oh-lucy.nvim" },
-      -- { "mfussenegger/nvim-dap" },
       { "github/copilot.vim" },
-      --   { "leoluz/nvim-dap-go", config=function()
-      --     require('dap-go').setup()
-      --     local dap = require "dap"
-      --     dap.adapters.go = function(callback, config)
-      --       local stdout = vim.loop.new_pipe(false)
-      --       local handle
-      --       local pid_or_err
-      --       local port = 38697
-      --       local opts = {
-      --         stdio = {nil, stdout},
-      --         args = {"dap", "-l", "127.0.0.1:" .. port},
-      --         detached = true
-      --       }
-      --       handle, pid_or_err = vim.loop.spawn("dlv", opts, function(code)
-      --         stdout:close()
-      --         handle:close()
-      --         if code ~= 0 then
-      --           print('dlv exited with code', code)
-      --         end
-      --       end)
-      --       assert(handle, 'Error running dlv: ' .. tostring(pid_or_err))
-      --       stdout:read_start(function(err, chunk)
-      --         assert(not err, err)
-      --         if chunk then
-      --           vim.schedule(function()
-      --             require('dap.repl').append(chunk)
-      --           end)
-      --         end
-      --       end)
-      --       -- Wait for delve to start
-      --       vim.defer_fn(
-      --       function()
-      --         callback({type = "server", host = "127.0.0.1", port = port})
-      --       end,
-      --       100)
-      --     end
-      --     -- https://github.com/go-delve/delve/blob/master/Documentation/usage/dlv_dap.md
-      --     dap.configurations.go = {
-      --       {
-      --         type = "go",
-      --         name = "Debug",
-      --         request = "launch",
-      --         program = "${file}"
-      --       },
-      --       {
-      --         type = "go",
-      --         name = "Debug test", -- configuration for debugging test files
-      --         request = "launch",
-      --         mode = "test",
-      --         program = "${file}"
-      --       },
-      --       -- works with go.mod packages and sub packages
-      --       {
-      --         type = "go",
-      --         name = "Debug test (go.mod)",
-      --         request = "launch",
-      --         mode = "test",
-      --         program = "./${relativeFileDirname}"
-      --       }
-      --     }
-      --   end
-      -- },
-      -- { "rcarriga/nvim-dap-ui", config = function()
-      --   require("dapui").setup({
-      --     icons = { expanded = "▾", collapsed = "▸" },
-      --     mappings = {
-      --       -- Use a table to apply multiple mappings
-      --       expand = { "<CR>", "<2-LeftMouse>" },
-      --       open = "o",
-      --       remove = "d",
-      --       edit = "e",
-      --       repl = "r",
-      --       },
-      --       sidebar = {
-      --         -- You can change the order of elements in the sidebar
-      --         elements = {
-      --           -- Provide as ID strings or tables with "id" and "size" keys
-      --           {
-      --             id = "scopes",
-      --             size = 0.25, -- Can be float or integer > 1
-      --           },
-      --           { id = "breakpoints", size = 0.25 },
-      --           { id = "stacks", size = 0.25 },
-      --           { id = "watches", size = 00.25 },
-      --         },
-      --         size = 40,
-      --         position = "left", -- Can be "left", "right", "top", "bottom"
-      --       },
-      --       tray = {
-      --         elements = { "repl" },
-      --         size = 10,
-      --         position = "bottom", -- Can be "left", "right", "top", "bottom"
-      --       },
-      --       floating = {
-      --         max_height = nil, -- These can be integers or a float between 0 and 1.
-      --         max_width = nil, -- Floats will be treated as percentage of your screen.
-      --         border = "single", -- Border style. Can be "single", "double" or "rounded"
-      --         mappings = {
-      --           close = { "q", "<Esc>" },
-      --         },
-      --       },
-      --       windows = { indent = 1 },
-      --     })
-      --
-      --   end },
       {
         "ThePrimeagen/harpoon",
         config = function()
