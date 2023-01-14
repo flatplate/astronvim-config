@@ -20,15 +20,14 @@ local function getTelescopeOpts(state, path)
   }
 end
 
-
 local config = {
   header = {
- ' ███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗',
- ' ████╗  ██║ ██╔════╝██╔═══██╗ ██║   ██║ ██║ ████╗ ████║',
- ' ██╔██╗ ██║ █████╗  ██║   ██║ ██║   ██║ ██║ ██╔████╔██║',
- ' ██║╚██╗██║ ██╔══╝  ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╔╝██║',
- ' ██║ ╚████║ ███████╗╚██████╔╝  ╚████╔╝  ██║ ██║ ╚═╝ ██║',
- ' ╚═╝  ╚═══╝ ╚══════╝ ╚═════╝    ╚═══╝   ╚═╝ ╚═╝     ╚═╝',
+    ' ███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗',
+    ' ████╗  ██║ ██╔════╝██╔═══██╗ ██║   ██║ ██║ ████╗ ████║',
+    ' ██╔██╗ ██║ █████╗  ██║   ██║ ██║   ██║ ██║ ██╔████╔██║',
+    ' ██║╚██╗██║ ██╔══╝  ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╔╝██║',
+    ' ██║ ╚████║ ███████╗╚██████╔╝  ╚████╔╝  ██║ ██║ ╚═╝ ██║',
+    ' ╚═╝  ╚═══╝ ╚══════╝ ╚═════╝    ╚═══╝   ╚═╝ ╚═╝     ╚═╝',
   },
   -- Configure AstroNvim updates
   updater = {
@@ -72,8 +71,8 @@ local config = {
       guifont = "JetBrainsMono Nerd Font Mono:h11",
       foldmethod = "indent",
       foldenable = false,
-      colorcolumn= "120",
-      ut=4000,
+      colorcolumn = "120",
+      ut = 4000,
     },
     g = {
       mapleader = " ", -- sets vim.g.mapleader
@@ -126,121 +125,122 @@ local config = {
       -- ["goolord/alpha-nvim"] = { disable = true },
 
       -- You can also add new plugins here as well:
+      { "rebelot/heirline.nvim", commit = "556666a" },
       { "Yazeed1s/oh-lucy.nvim" },
       -- { "mfussenegger/nvim-dap" },
       { "github/copilot.vim" },
-    --   { "leoluz/nvim-dap-go", config=function()
-    --     require('dap-go').setup()
-    --     local dap = require "dap"
-    --     dap.adapters.go = function(callback, config)
-    --       local stdout = vim.loop.new_pipe(false)
-    --       local handle
-    --       local pid_or_err
-    --       local port = 38697
-    --       local opts = {
-    --         stdio = {nil, stdout},
-    --         args = {"dap", "-l", "127.0.0.1:" .. port},
-    --         detached = true
-    --       }
-    --       handle, pid_or_err = vim.loop.spawn("dlv", opts, function(code)
-    --         stdout:close()
-    --         handle:close()
-    --         if code ~= 0 then
-    --           print('dlv exited with code', code)
-    --         end
-    --       end)
-    --       assert(handle, 'Error running dlv: ' .. tostring(pid_or_err))
-    --       stdout:read_start(function(err, chunk)
-    --         assert(not err, err)
-    --         if chunk then
-    --           vim.schedule(function()
-    --             require('dap.repl').append(chunk)
-    --           end)
-    --         end
-    --       end)
-    --       -- Wait for delve to start
-    --       vim.defer_fn(
-    --       function()
-    --         callback({type = "server", host = "127.0.0.1", port = port})
-    --       end,
-    --       100)
-    --     end
-    --     -- https://github.com/go-delve/delve/blob/master/Documentation/usage/dlv_dap.md
-    --     dap.configurations.go = {
-    --       {
-    --         type = "go",
-    --         name = "Debug",
-    --         request = "launch",
-    --         program = "${file}"
-    --       },
-    --       {
-    --         type = "go",
-    --         name = "Debug test", -- configuration for debugging test files
-    --         request = "launch",
-    --         mode = "test",
-    --         program = "${file}"
-    --       },
-    --       -- works with go.mod packages and sub packages 
-    --       {
-    --         type = "go",
-    --         name = "Debug test (go.mod)",
-    --         request = "launch",
-    --         mode = "test",
-    --         program = "./${relativeFileDirname}"
-    --       } 
-    --     }
-    --   end
-    -- },
-    -- { "rcarriga/nvim-dap-ui", config = function() 
-    --   require("dapui").setup({
-    --     icons = { expanded = "▾", collapsed = "▸" },
-    --     mappings = {
-    --       -- Use a table to apply multiple mappings
-    --       expand = { "<CR>", "<2-LeftMouse>" },
-    --       open = "o",
-    --       remove = "d",
-    --       edit = "e",
-    --       repl = "r",
-    --       },
-    --       sidebar = {
-    --         -- You can change the order of elements in the sidebar
-    --         elements = {
-    --           -- Provide as ID strings or tables with "id" and "size" keys
-    --           {
-    --             id = "scopes",
-    --             size = 0.25, -- Can be float or integer > 1
-    --           },
-    --           { id = "breakpoints", size = 0.25 },
-    --           { id = "stacks", size = 0.25 },
-    --           { id = "watches", size = 00.25 },
-    --         },
-    --         size = 40,
-    --         position = "left", -- Can be "left", "right", "top", "bottom"
-    --       },
-    --       tray = {
-    --         elements = { "repl" },
-    --         size = 10,
-    --         position = "bottom", -- Can be "left", "right", "top", "bottom"
-    --       },
-    --       floating = {
-    --         max_height = nil, -- These can be integers or a float between 0 and 1.
-    --         max_width = nil, -- Floats will be treated as percentage of your screen.
-    --         border = "single", -- Border style. Can be "single", "double" or "rounded"
-    --         mappings = {
-    --           close = { "q", "<Esc>" },
-    --         },
-    --       },
-    --       windows = { indent = 1 },
-    --     })
-    --
-    --   end },
-      { 
+      --   { "leoluz/nvim-dap-go", config=function()
+      --     require('dap-go').setup()
+      --     local dap = require "dap"
+      --     dap.adapters.go = function(callback, config)
+      --       local stdout = vim.loop.new_pipe(false)
+      --       local handle
+      --       local pid_or_err
+      --       local port = 38697
+      --       local opts = {
+      --         stdio = {nil, stdout},
+      --         args = {"dap", "-l", "127.0.0.1:" .. port},
+      --         detached = true
+      --       }
+      --       handle, pid_or_err = vim.loop.spawn("dlv", opts, function(code)
+      --         stdout:close()
+      --         handle:close()
+      --         if code ~= 0 then
+      --           print('dlv exited with code', code)
+      --         end
+      --       end)
+      --       assert(handle, 'Error running dlv: ' .. tostring(pid_or_err))
+      --       stdout:read_start(function(err, chunk)
+      --         assert(not err, err)
+      --         if chunk then
+      --           vim.schedule(function()
+      --             require('dap.repl').append(chunk)
+      --           end)
+      --         end
+      --       end)
+      --       -- Wait for delve to start
+      --       vim.defer_fn(
+      --       function()
+      --         callback({type = "server", host = "127.0.0.1", port = port})
+      --       end,
+      --       100)
+      --     end
+      --     -- https://github.com/go-delve/delve/blob/master/Documentation/usage/dlv_dap.md
+      --     dap.configurations.go = {
+      --       {
+      --         type = "go",
+      --         name = "Debug",
+      --         request = "launch",
+      --         program = "${file}"
+      --       },
+      --       {
+      --         type = "go",
+      --         name = "Debug test", -- configuration for debugging test files
+      --         request = "launch",
+      --         mode = "test",
+      --         program = "${file}"
+      --       },
+      --       -- works with go.mod packages and sub packages
+      --       {
+      --         type = "go",
+      --         name = "Debug test (go.mod)",
+      --         request = "launch",
+      --         mode = "test",
+      --         program = "./${relativeFileDirname}"
+      --       }
+      --     }
+      --   end
+      -- },
+      -- { "rcarriga/nvim-dap-ui", config = function()
+      --   require("dapui").setup({
+      --     icons = { expanded = "▾", collapsed = "▸" },
+      --     mappings = {
+      --       -- Use a table to apply multiple mappings
+      --       expand = { "<CR>", "<2-LeftMouse>" },
+      --       open = "o",
+      --       remove = "d",
+      --       edit = "e",
+      --       repl = "r",
+      --       },
+      --       sidebar = {
+      --         -- You can change the order of elements in the sidebar
+      --         elements = {
+      --           -- Provide as ID strings or tables with "id" and "size" keys
+      --           {
+      --             id = "scopes",
+      --             size = 0.25, -- Can be float or integer > 1
+      --           },
+      --           { id = "breakpoints", size = 0.25 },
+      --           { id = "stacks", size = 0.25 },
+      --           { id = "watches", size = 00.25 },
+      --         },
+      --         size = 40,
+      --         position = "left", -- Can be "left", "right", "top", "bottom"
+      --       },
+      --       tray = {
+      --         elements = { "repl" },
+      --         size = 10,
+      --         position = "bottom", -- Can be "left", "right", "top", "bottom"
+      --       },
+      --       floating = {
+      --         max_height = nil, -- These can be integers or a float between 0 and 1.
+      --         max_width = nil, -- Floats will be treated as percentage of your screen.
+      --         border = "single", -- Border style. Can be "single", "double" or "rounded"
+      --         mappings = {
+      --           close = { "q", "<Esc>" },
+      --         },
+      --       },
+      --       windows = { indent = 1 },
+      --     })
+      --
+      --   end },
+      {
         "ThePrimeagen/harpoon",
         config = function()
           require("harpoon").setup({
-              menu = {
-                  width = vim.api.nvim_win_get_width(0) - 4,
-              }
+            menu = {
+              width = vim.api.nvim_win_get_width(0) - 4,
+            }
           })
         end
       },
@@ -265,7 +265,7 @@ local config = {
       { 'tpope/vim-fugitive' },
       {
         'hkupty/iron.nvim',
-        config = function() 
+        config = function()
 
           local iron = require("iron.core")
           local view = require("iron.view")
@@ -276,7 +276,7 @@ local config = {
               -- Your repl definitions come here
               repl_definition = {
                 sh = {
-                  command = {"zsh"}
+                  command = { "zsh" }
                 }
               },
               -- How the repl window will be displayed
@@ -313,79 +313,79 @@ local config = {
       {
         "ThePrimeagen/refactoring.nvim",
         requires = {
-          {"nvim-lua/plenary.nvim"},
-          {"nvim-treesitter/nvim-treesitter"}
+          { "nvim-lua/plenary.nvim" },
+          { "nvim-treesitter/nvim-treesitter" }
         }
       },
       { 'sam4llis/nvim-tundra',
-      config = function()
-        require('nvim-tundra').setup({
-          transparent_background = false,
-          editor = {
-            search = {},
-            substitute = {},
-          },
-          syntax = {
-            booleans = { bold = true, italic = true },
-            comments = { bold = true, italic = true },
-            conditionals = {},
-            constants = { bold = true },
-            functions = {},
-            keywords = {},
-            loops = {},
-            numbers = { bold = true },
-            operators = { bold = true },
-            punctuation = {},
-            strings = {},
-            types = { italic = true },
-          },
-          iagnostics = {
-            errors = {},
-            warnings = {},
-            information = {},
-            hints = {},
-          },
-          plugins = {
-            lsp = true,
-            treesitter = true,
-            context = true,
-            gitsigns = true,
-            telescope = true,
-          },
-          overwrite = {
-            colors = {},
-            highlights = {},
-          },
-        })
-      end
+        config = function()
+          require('nvim-tundra').setup({
+            transparent_background = false,
+            editor = {
+              search = {},
+              substitute = {},
+            },
+            syntax = {
+              booleans = { bold = true, italic = true },
+              comments = { bold = true, italic = true },
+              conditionals = {},
+              constants = { bold = true },
+              functions = {},
+              keywords = {},
+              loops = {},
+              numbers = { bold = true },
+              operators = { bold = true },
+              punctuation = {},
+              strings = {},
+              types = { italic = true },
+            },
+            iagnostics = {
+              errors = {},
+              warnings = {},
+              information = {},
+              hints = {},
+            },
+            plugins = {
+              lsp = true,
+              treesitter = true,
+              context = true,
+              gitsigns = true,
+              telescope = true,
+            },
+            overwrite = {
+              colors = {},
+              highlights = {},
+            },
+          })
+        end
 
-    },
-    { 'mattn/emmet-vim' },
-    -- { 'MunifTanjim/prettier.nvim' },
-    { 'ludovicchabant/vim-gutentags' },
-    {
-      "kylechui/nvim-surround",
-      tag = "*", -- Use for stability; omit to use `main` branch for the latest features
-      config = function()
-        require("nvim-surround").setup({
-          -- Configuration here, or leave empty to use defaults
-        })
-      end
-    },
-    { 'bluz71/vim-nightfly-guicolors' },
-    { 'chentoast/marks.nvim' },
-    { 'fatih/vim-go' },
-    -- { 'sbdchd/neoformat' },
-    -- { 'petertriho/nvim-scrollbar'  }
-    -- { "andweeb/presence.nvim" },
-    -- {
+      },
+      { 'mattn/emmet-vim' },
+      -- { 'MunifTanjim/prettier.nvim' },
+      { 'ludovicchabant/vim-gutentags' },
+      {
+        "kylechui/nvim-surround",
+        tag = "*", -- Use for stability; omit to use `main` branch for the latest features
+        config = function()
+          require("nvim-surround").setup({
+            -- Configuration here, or leave empty to use defaults
+          })
+        end
+      },
+      { 'bluz71/vim-nightfly-guicolors' },
+      { 'chentoast/marks.nvim' },
+      { 'fatih/vim-go' },
+      -- { 'sbdchd/neoformat' },
+      -- { 'petertriho/nvim-scrollbar'  }
+      -- { "andweeb/presence.nvim" },
+      -- {
       --   "ray-x/lsp_signature.nvim",
       --   event = "BufRead",
       --   config = function()
-        --     require("lsp_signature").setup()
-        --   end,
-        -- },
-      },
+      --     require("lsp_signature").setup()
+      --   end,
+      -- },
+    },
     -- All other entries override the setup() call for default plugins
     ["null-ls"] = function(config)
       local null_ls = require "null-ls"
@@ -409,22 +409,22 @@ local config = {
           pattern = "*",
           callback = function()
             if vim.bo.filetype == "typescript" or vim.bo.filetype == "javascript" or
-              vim.bo.filetype == "javascriptreact" or
-              vim.bo.filetype == "typescriptreact"
-              then
-                -- NOTE: don't format javascript files
-                vim.cmd("EslintFixAll")
-                -- vim.lsp.buf.format({ name = "eslint" }) -- works too
-                return
-              elseif vim.bo.filetype == "proto" then
-                local view_state = vim.fn.winsaveview()
-                vim.cmd("%!clang-format --assume-filename=%")
-                vim.fn.winrestview(view_state)
-              end
-            end,
-          }
+                vim.bo.filetype == "javascriptreact" or
+                vim.bo.filetype == "typescriptreact"
+            then
+              -- NOTE: don't format javascript files
+              vim.cmd("EslintFixAll")
+              -- vim.lsp.buf.format({ name = "eslint" }) -- works too
+              return
+            elseif vim.bo.filetype == "proto" then
+              local view_state = vim.fn.winsaveview()
+              vim.cmd("%!clang-format --assume-filename=%")
+              vim.fn.winrestview(view_state)
+            end
+          end,
+        }
         )
-          -- NOTE: You can remove this on attach function to disable format on save
+        -- NOTE: You can remove this on attach function to disable format on save
         -- if client.resolved_capabilities.document_formatting then
         --   vim.api.nvim_create_autocmd('BufWritePre', {
         --     pattern = { '*.tsx', '*.ts', '*.jsx', '*.js' },
@@ -435,7 +435,7 @@ local config = {
       end
       return config -- return final config table
     end,
-    ["neo-tree"] = function(config) 
+    ["neo-tree"] = function(config)
       -- TODO Add keybinding for jump to last open buffer location in tree, and disable auto jumping
       -- Search in children of directory under cursor
       config.filesystem.window = {
@@ -572,27 +572,29 @@ local config = {
       ["<C-p>"] = { "\"qp", desc = "Paste from register q" },
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
       ['<c-cr>'] = { function() vim.lsp.buf.code_action() end },
-      ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true, ignore_current_buffer = true }) end },
+      ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true,
+          ignore_current_buffer = true })
+      end },
       ['<c-tab>'] = { ":b#<cr>" },
       ['<c-`>'] = { function() require('telescope.builtin').marks({ sort_lastused = true }) end },
-      ['<leader>a'] = {":ArgWrap<cr>"},
-      ['<leader>df'] = {":GoPrintlnFileLine<CR>"}, -- TODO Make this only work in go files
-      ['<c-m>'] = {":cp<cr><cr>"},
-      ['<c-n>'] = {":cn<cr><cr>"},
-      ['<leader>ff'] = {":Telescope find_files hidden=true<CR>"},
+      ['<leader>a'] = { ":ArgWrap<cr>" },
+      ['<leader>df'] = { ":GoPrintlnFileLine<CR>" }, -- TODO Make this only work in go files
+      ['<c-m>'] = { ":cp<cr><cr>" },
+      ['<c-n>'] = { ":cn<cr><cr>" },
+      ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
       ['<leader>fi'] = { function()
-          vim.cmd('noau normal! "zyiw"')
-          require('telescope.builtin').find_files({search_file = vim.fn.getreg("z")})
-        end },
-      ['<leader>fr'] = {":Telescope resume<CR>"},
-      ['<leader>gl'] = {":Git blame<CR>"},
-      ['gv'] = {":vsplit<CR>gd"},
-      ['<leader>sr'] = {'yiw:%s/<C-R>*'},
-      ['<leader>ss'] = {'yiw:s/<C-R>*/'},
-      ['<leader>ci'] = { "<Plug>(copilot-suggest)"},
-      ['<leader>bb'] = {function() require("harpoon.mark").add_file() end},
-      ['<c-1>'] = {function() require("harpoon.ui").toggle_quick_menu() end}
-      -- TODO Some keybinding for search and replace word under cursor: 
+        vim.cmd('noau normal! "zyiw"')
+        require('telescope.builtin').find_files({ search_file = vim.fn.getreg("z") })
+      end },
+      ['<leader>fr'] = { ":Telescope resume<CR>" },
+      ['<leader>gl'] = { ":Git blame<CR>" },
+      ['gv'] = { ":vsplit<CR>gd" },
+      ['<leader>sr'] = { 'yiw:%s/<C-R>*' },
+      ['<leader>ss'] = { 'yiw:s/<C-R>*/' },
+      ['<leader>ci'] = { "<Plug>(copilot-suggest)" },
+      ['<leader>bb'] = { function() require("harpoon.mark").add_file() end },
+      ['<c-1>'] = { function() require("harpoon.ui").toggle_quick_menu() end }
+      -- TODO Some keybinding for search and replace word under cursor:
       -- ['<c-g>'] = {"<space>gg"}, I tried to use c-g for opening the lazy git window because escaping inside the window is tricky
       -- TODO Telescope grep in files in the quickfix list
     },
@@ -602,21 +604,23 @@ local config = {
     },
     i = {
       ["<C-p>"] = { "<esc>:Telescope oldfiles<CR>", desc = "Save File" },
-      ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true, ignore_current_buffer = true }) end },
+      ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true,
+          ignore_current_buffer = true })
+      end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
-      ['<c-k>i'] = { "<Plug>(copilot-suggest)"},
+      ['<c-k>i'] = { "<Plug>(copilot-suggest)" },
       -- ['<c-g>'] = {"<esc>gg"},
     },
 
--- Remaps for the refactoring operations currently offered by the refactoring.nvim plugin
+    -- Remaps for the refactoring operations currently offered by the refactoring.nvim plugin
     v = {
-      [ "<leader>re" ] = { function() require('refactoring').refactor('Extract Function') end },
-      [ "<leader>rf" ] = { function() require('refactoring').refactor('Extract Function To File') end},
-      [ "<leader>rv" ] = { function() require('refactoring').refactor('Extract Variable') end},
-      [ "<leader>ri" ] = { function() require('refactoring').refactor('Inline Variable') end},
-      [ "<leader>fc" ] = { function() 
+      ["<leader>re"] = { function() require('refactoring').refactor('Extract Function') end },
+      ["<leader>rf"] = { function() require('refactoring').refactor('Extract Function To File') end },
+      ["<leader>rv"] = { function() require('refactoring').refactor('Extract Variable') end },
+      ["<leader>ri"] = { function() require('refactoring').refactor('Inline Variable') end },
+      ["<leader>fc"] = { function()
         vim.cmd('noau visual! "zy"')
-        require('telescope.builtin').grep_string({search = vim.fn.getreg("z")})
+        require('telescope.builtin').grep_string({ search = vim.fn.getreg("z") })
       end },
       ['<c-cr>'] = { function() vim.lsp.buf.range_code_action() end },
     }
@@ -638,15 +642,15 @@ local config = {
     --   desc = "Auto save buffer",
     --   command = "noa update",
     -- })
-    vim.api.nvim_create_user_command('CopyLines', function(opts) 
+    vim.api.nvim_create_user_command('CopyLines', function(opts)
       vim.cmd('noau visual! qaq')
       vim.cmd('g/' .. opts.args .. '/y A')
       vim.cmd('let @+ = @a')
-    end, { nargs = 1 } )
+    end, { nargs = 1 })
 
-    vim.api.nvim_create_user_command('GoPrintlnFileLine', function(opts) 
+    vim.api.nvim_create_user_command('GoPrintlnFileLine', function(opts)
       local path = vim.fn.getreg("%")
-      local file = path:match( "([^/]+)$" )
+      local file = path:match("([^/]+)$")
 
       local line_num = vim.api.nvim_win_get_cursor(0)[1]
 
@@ -655,8 +659,8 @@ local config = {
       vim.cmd("execute \"normal\\\"zp\"")
       vim.cmd("execute \"i\\\")\"")
 
-    end, { nargs = 0 } )
-    -- TODO Create an autocommand for autosave 
+    end, { nargs = 0 })
+    -- TODO Create an autocommand for autosave
     -- context:  https://vi.stackexchange.com/questions/74/is-it-possible-to-make-vim-auto-save-files
     -- autocmd CursorHold,CursorHoldI * update
   end,
