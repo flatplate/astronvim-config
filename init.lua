@@ -158,6 +158,12 @@ local config = {
   -- PLUGINS
   plugins = {
     -- Add plugins, the packer syntax without the "use"
+    -- p
+    toggleterm = {
+      direction = "vertical",
+      size = 80
+    },
+
     init = {
       -- You can disable default plugins as follows:
       -- ["goolord/alpha-nvim"] = { disable = true },
@@ -165,6 +171,7 @@ local config = {
       -- You can also add new plugins here as well:
       { "rebelot/heirline.nvim", commit = "556666a", config = function(config)
         -- the first element of the configuration table is the statusline
+        vim.notify(config)
         config[1] = {
           -- default highlight for the entire statusline
           hl = { fg = "fg", bg = "bg" },
@@ -276,7 +283,26 @@ local config = {
         -- return the final confiuration table
         return config
       end },
+      { "MattesGroeger/vim-bookmarks" },
       { "Yazeed1s/oh-lucy.nvim" },
+      { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
+        require('telescope').load_extension('vim_bookmarks')
+      end},
+      { "ldelossa/litee.nvim", config = function() 
+        require('litee.lib').setup({
+          tree = {
+            icon_set = "codicons"
+          },
+          panel = {
+            orientation = "left",
+            panel_size  = 30
+          }
+        })
+      end },
+      { "ldelossa/litee-calltree.nvim", config = function() 
+        require('litee.calltree').setup({})
+      end
+      },
       { "github/copilot.vim" },
       {
         "ThePrimeagen/harpoon",
@@ -284,7 +310,7 @@ local config = {
           require("harpoon").setup({
             menu = {
               width = vim.api.nvim_win_get_width(0) - 4,
-            }
+             }
           })
         end
       },
@@ -431,6 +457,7 @@ local config = {
       -- },
     },
     -- All other entries override the setup() call for default plugins
+    --
     ["null-ls"] = function(config)
       local null_ls = require "null-ls"
       -- Check supported formatters and linters
@@ -527,7 +554,7 @@ local config = {
       javascript = { "javascriptreact" },
     },
   },
-
+ 
   -- Modify which-key registration
   ["which-key"] = {
     -- Add bindings
@@ -557,6 +584,7 @@ local config = {
       path = 250,
     },
   },
+
 
   -- Extend LSP configuration
   lsp = {
@@ -613,6 +641,7 @@ local config = {
     n = {
       -- second key is the lefthand side of the map
       ["<C-s>"] = { ":wa!<cr>", desc = "Save File" },
+      ["<C-'>"] = { ":ToggleTerm<CR>", desc = "Open toggle term" },
       ["<C-p>"] = { "\"qp", desc = "Paste from register q" },
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
       ['<c-cr>'] = { function() vim.lsp.buf.code_action() end },
@@ -623,9 +652,11 @@ local config = {
       ['<c-`>'] = { function() require('telescope.builtin').marks({ sort_lastused = true }) end },
       ['<leader>a'] = { ":ArgWrap<cr>" },
       ['<leader>df'] = { ":GoPrintlnFileLine<CR>" }, -- TODO Make this only work in go files
-      ['<c-m>'] = { ":cp<cr><cr>" },
-      ['<c-n>'] = { ":cn<cr><cr>" },
+      ['<c-s-n>'] = { ":cp<cr>" },
+      ['<c-n>'] = { ":cn<cr>" },
       ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
+      ['<leader>fb'] = { ":Telescope vim_bookmarks all<CR>" },
+      ['<leader>fp'] = { function() require('telescope.builtin').live_grep({grep_open_files=true}) end, desc = "Search in open files" },
       ['<leader>fi'] = { function()
         vim.cmd('noau normal! "zyiw"')
         require('telescope.builtin').find_files({ search_file = vim.fn.getreg("z") })
@@ -645,6 +676,7 @@ local config = {
     t = {
       -- setting a mapping to false will disable it
       -- ["<esc>"] = false,
+      ["<esc>"] = { "<C-\\><C-n>", desc = "To normal mode in terminal" },
     },
     i = {
       ["<C-p>"] = { "<esc>:Telescope oldfiles<CR>", desc = "Save File" },
@@ -652,7 +684,7 @@ local config = {
           ignore_current_buffer = true })
       end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
-      ['<c-k>i'] = { "<Plug>(copilot-suggest)" },
+      ['<c-k>'] = { "<Plug>(copilot-suggest)" },
       -- ['<c-g>'] = {"<esc>gg"},
     },
 
@@ -691,6 +723,10 @@ local config = {
       vim.cmd('g/' .. opts.args .. '/y A')
       vim.cmd('let @+ = @a')
     end, { nargs = 1 })
+
+    vim.api.nvim_create_user_command('CloseAllBuffers', function(opts)
+      vim.cmd('%bd|e#')
+    end, {nargs=0})
 
     vim.api.nvim_create_user_command('GoPrintlnFileLine', function(opts)
       local path = vim.fn.getreg("%")
