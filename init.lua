@@ -20,6 +20,14 @@ local function getTelescopeOpts(state, path)
   }
 end
 
+local function osDependentConfig(config)
+  local isWindows = vim.loop.os_uname().sysname == "Windows_NT"
+  if isWindows then
+    return config['windows']
+  end
+  return config['default']
+end
+
 local config = {
   icons = {
     VimIcon = "",
@@ -106,7 +114,7 @@ local config = {
     opt = {
       relativenumber = true, -- sets vim.opt.relativenumber
       ignorecase = true,
-      guifont = "JetBrainsMono Nerd Font Mono:h11",
+      guifont = osDependentConfig({ windows = "JetBrains Mono NL:h11", default = "JetBrainsMono Nerd Font Mono:h11" }),
       foldmethod = "indent",
       foldenable = false,
       colorcolumn = "120",
@@ -287,8 +295,8 @@ local config = {
       { "Yazeed1s/oh-lucy.nvim" },
       { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
         require('telescope').load_extension('vim_bookmarks')
-      end},
-      { "ldelossa/litee.nvim", config = function() 
+      end },
+      { "ldelossa/litee.nvim", config = function()
         require('litee.lib').setup({
           tree = {
             icon_set = "codicons"
@@ -299,7 +307,7 @@ local config = {
           }
         })
       end },
-      { "ldelossa/litee-calltree.nvim", config = function() 
+      { "ldelossa/litee-calltree.nvim", config = function()
         require('litee.calltree').setup({})
       end
       },
@@ -310,7 +318,7 @@ local config = {
           require("harpoon").setup({
             menu = {
               width = vim.api.nvim_win_get_width(0) - 4,
-             }
+            }
           })
         end
       },
@@ -554,7 +562,7 @@ local config = {
       javascript = { "javascriptreact" },
     },
   },
- 
+
   -- Modify which-key registration
   ["which-key"] = {
     -- Add bindings
@@ -641,7 +649,7 @@ local config = {
     n = {
       -- second key is the lefthand side of the map
       ["<C-s>"] = { ":wa!<cr>", desc = "Save File" },
-      ["<C-'>"] = { ":ToggleTerm<CR>", desc = "Open toggle term" },
+      [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { ":ToggleTerm<CR>", desc = "Open toggle term" },
       ["<C-p>"] = { "\"qp", desc = "Paste from register q" },
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
       ['<c-cr>'] = { function() vim.lsp.buf.code_action() end },
@@ -656,7 +664,8 @@ local config = {
       ['<c-n>'] = { ":cn<cr>" },
       ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
       ['<leader>fb'] = { ":Telescope vim_bookmarks all<CR>" },
-      ['<leader>fp'] = { function() require('telescope.builtin').live_grep({grep_open_files=true}) end, desc = "Search in open files" },
+      ['<leader>fp'] = { function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
+        desc = "Search in open files" },
       ['<leader>fi'] = { function()
         vim.cmd('noau normal! "zyiw"')
         require('telescope.builtin').find_files({ search_file = vim.fn.getreg("z") })
@@ -677,6 +686,8 @@ local config = {
       -- setting a mapping to false will disable it
       -- ["<esc>"] = false,
       ["<esc>"] = { "<C-\\><C-n>", desc = "To normal mode in terminal" },
+      [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { "<C-\\><C-n>:ToggleTerm<CR>",
+        desc = "Close toggle term" },
     },
     i = {
       ["<C-p>"] = { "<esc>:Telescope oldfiles<CR>", desc = "Save File" },
@@ -685,6 +696,7 @@ local config = {
       end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
       ['<c-k>'] = { "<Plug>(copilot-suggest)" },
+      ['<c-j>'] = { "copilot#Accept(\"\\<CR>\")", expr = true, silent = true },
       -- ['<c-g>'] = {"<esc>gg"},
     },
 
@@ -726,7 +738,7 @@ local config = {
 
     vim.api.nvim_create_user_command('CloseAllBuffers', function(opts)
       vim.cmd('%bd|e#')
-    end, {nargs=0})
+    end, { nargs = 0 })
 
     vim.api.nvim_create_user_command('GoPrintlnFileLine', function(opts)
       local path = vim.fn.getreg("%")
