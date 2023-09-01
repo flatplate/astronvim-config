@@ -20,6 +20,24 @@ local function getTelescopeOpts(state, path)
   }
 end
 
+local DEBOUNCE_DELAY = 300
+local timer = vim.loop.new_timer()
+
+function debouncedCopilotSuggest()
+  timer:stop()
+  timer:start(
+  DEBOUNCE_DELAY,
+  0,
+  vim.schedule_wrap(function()
+    vim.api.nvim_feedkeys(
+      vim.api.nvim_replace_termcodes('<Plug>(copilot-suggest)', true, true, true),
+      'm',
+      true
+    )
+  end)
+  )
+end
+
 local function osDependentConfig(config)
   local isWindows = vim.loop.os_uname().sysname == "Windows_NT"
   if isWindows then
@@ -94,7 +112,7 @@ local config = {
   neoformat_try_node_exe = 1,
 
   -- Set colorscheme
-  colorscheme = "tundra",
+  colorscheme = "gruvbox",
 
   -- Override highlight groups in any theme
   highlights = {
@@ -112,9 +130,10 @@ local config = {
   -- set vim options here (vim.<first_key>.<second_key> =  value)
   options = {
     opt = {
+      number = true,
       relativenumber = true, -- sets vim.opt.relativenumber
       ignorecase = true,
-      guifont = osDependentConfig({ windows = "JetBrains Mono NL:h11", default = "JetBrainsMono Nerd Font Mono:h11" }),
+      guifont = osDependentConfig({ windows = "JetBrains Mono NL:h10", default = "JetBrainsMono Nerd Font Mono:h10" }),
       foldmethod = "indent",
       foldenable = false,
       colorcolumn = "120",
@@ -125,6 +144,7 @@ local config = {
       tabstop = 4,
       shiftwidth = 4,
       expandtab = true,
+      bookmark_auto_save = 0,
     },
   },
 
@@ -136,9 +156,9 @@ local config = {
       fg = "#abb2bf",
     },
     plugins = { -- enable or disable extra plugin highlighting
-      aerial = true,
+      -- aerial = true,
       beacon = false,
-      bufferline = false,
+      -- bufferline = false,
       dashboard = true,
       highlighturl = true,
       hop = false,
@@ -159,7 +179,7 @@ local config = {
   -- Disable AstroNvim ui features
   ui = {
     nui_input = true,
-    telescope_select = true,
+    -- telescope_select = true,
   },
 
   -- Configure plugins
@@ -174,295 +194,92 @@ local config = {
 
     init = {
       -- You can disable default plugins as follows:
-      -- ["goolord/alpha-nvim"] = { disable = true },
-
+      ["goolord/alpha-nvim"] = { commit = "21a0f25"},
+     {"ellisonleao/gruvbox.nvim"},
       -- You can also add new plugins here as well:
-      { "rebelot/heirline.nvim", commit = "556666a", config = function(config)
-        -- the first element of the configuration table is the statusline
-        vim.notify(config)
-        config[1] = {
-          -- default highlight for the entire statusline
-          hl = { fg = "fg", bg = "bg" },
-          -- each element following is a component in astronvim.status module
+     { "rebelot/heirline.nvim", commit = "556666a" },
+     { "prochri/telescope-all-recent.nvim", requires={"kkharji/sqlite.lua"}},
+     { "ggandor/leap.nvim", config = function() 
+        require('leap').add_default_mappings()
+     end },
+     { "MattesGroeger/vim-bookmarks" },
+     { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
+       require('telescope').load_extension('vim_bookmarks')
+     end },
+     { "github/copilot.vim" },
+     {
+       "ThePrimeagen/harpoon",
+       config = function()
+         require("harpoon").setup({
+           menu = {
+             width = vim.api.nvim_win_get_width(0) - 4,
+           }
+         })
+       end
+     },
+     { 'alvan/vim-closetag' },
+     { 'tpope/vim-fugitive' },
+     { 'FooSoft/vim-argwrap' },
+     { 'sam4llis/nvim-tundra',
+       config = function()
+         require('nvim-tundra').setup({
+           transparent_background = false,
+           editor = {
+             search = {},
+             substitute = {},
+           },
+           syntax = {
+             booleans = { bold = true, italic = true },
+             comments = { bold = true, italic = true },
+             conditionals = {},
+             constants = { bold = true },
+             functions = {},
+             keywords = {},
+             loops = {},
+             numbers = { bold = true },
+             operators = { bold = true },
+             punctuation = {},
+             strings = {},
+             types = { italic = true },
+           },
+           iagnostics = {
+             errors = {},
+             warnings = {},
+             information = {},
+             hints = {},
+           },
+           plugins = {
+             lsp = true,
+             treesitter = true,
+             context = true,
+             gitsigns = true,
+             telescope = true,
+           },
+         })
+       end
 
-          -- add the vim mode component
-          astronvim.status.component.mode {
-            -- enable mode text with padding as well as an icon before it
-            mode_text = { icon = { kind = "VimIcon", padding = { right = 1, left = 1 } } },
-            -- surround the component with a separators
-            surround = {
-              -- it's a left element, so use the left separator
-              separator = "left",
-              -- set the color of the surrounding based on the current mode using astronvim.status module
-              color = function() return { main = astronvim.status.hl.mode_bg(), right = "blank_bg" } end,
-            },
-          },
-          -- we want an empty space here so we can use the component builder to make a new section with just an empty string
-          astronvim.status.component.builder {
-            { provider = "" },
-            -- define the surrounding separator and colors to be used inside of the component
-            -- and the color to the right of the separated out section
-            surround = { separator = "left", color = { main = "blank_bg", right = "file_info_bg" } },
-          },
-          -- add a section for the currently opened file information
-          astronvim.status.component.file_info {
-            -- enable the file_icon and disable the highlighting based on filetype
-            file_icon = { padding = { left = 0 } },
-            filename = { fallback = "Empty" },
-            -- add padding
-            padding = { right = 1 },
-            -- define the section separator
-            surround = { separator = "left", condition = false },
-          },
-          -- add a component for the current git branch if it exists and use no separator for the sections
-          astronvim.status.component.git_branch { surround = { separator = "none" } },
-          -- add a component for the current git diff if it exists and use no separator for the sections
-          astronvim.status.component.git_diff { padding = { left = 1 }, surround = { separator = "none" } },
-          -- fill the rest of the statusline
-          -- the elements after this will appear in the middle of the statusline
-          astronvim.status.component.fill(),
-          -- add a component to display if the LSP is loading, disable showing running client names, and use no separator
-          astronvim.status.component.lsp { lsp_client_names = false, surround = { separator = "none", color = "bg" } },
-          -- fill the rest of the statusline
-          -- the elements after this will appear on the right of the statusline
-          astronvim.status.component.fill(),
-          -- add a component for the current diagnostics if it exists and use the right separator for the section
-          astronvim.status.component.diagnostics { surround = { separator = "right" } },
-          -- add a component to display LSP clients, disable showing LSP progress, and use the right separator
-          astronvim.status.component.lsp { lsp_progress = false, surround = { separator = "right" } },
-          -- NvChad has some nice icons to go along with information, so we can create a parent component to do this
-          -- all of the children of this table will be treated together as a single component
-          {
-            -- define a simple component where the provider is just a folder icon
-            astronvim.status.component.builder {
-              -- astronvim.get_icon gets the user interface icon for a closed folder with a space after it
-              { provider = astronvim.get_icon "FolderClosed" },
-              -- add padding after icon
-              padding = { right = 1 },
-              -- set the foreground color to be used for the icon
-              hl = { fg = "bg" },
-              -- use the right separator and define the background color
-              surround = { separator = "right", color = "folder_icon_bg" },
-            },
-            -- add a file information component and only show the current working directory name
-            astronvim.status.component.file_info {
-              -- we only want filename to be used and we can change the fname
-              -- function to get the current working directory name
-              filename = { fname = function(nr) return vim.fn.getcwd(nr) end, padding = { left = 1 } },
-              -- disable all other elements of the file_info component
-              file_icon = false,
-              file_modified = false,
-              file_read_only = false,
-              -- use no separator for this part but define a background color
-              surround = { separator = "none", color = "file_info_bg", condition = false },
-            },
-          },
-          -- the final component of the NvChad statusline is the navigation section
-          -- this is very similar to the previous current working directory section with the icon
-          { -- make nav section with icon border
-            -- define a custom component with just a file icon
-            astronvim.status.component.builder {
-              { provider = astronvim.get_icon "ScrollText" },
-              -- add padding after icon
-              padding = { right = 1 },
-              -- set the icon foreground
-              hl = { fg = "bg" },
-              -- use the right separator and define the background color
-              -- as well as the color to the left of the separator
-              surround = { separator = "right", color = { main = "nav_icon_bg", left = "file_info_bg" } },
-            },
-            -- add a navigation component and just display the percentage of progress in the file
-            astronvim.status.component.nav {
-              -- add some padding for the percentage provider
-              percentage = { padding = { right = 1 } },
-              -- disable all other providers
-              ruler = false,
-              scrollbar = false,
-              -- use no separator and define the background color
-              surround = { separator = "none", color = "file_info_bg" },
-            },
-          },
-        }
-
-        -- a second element in the heirline setup would override the winbar
-        -- by only providing a single element we will only override the statusline
-        -- and use the default winbar in AstroNvim
-
-        -- return the final confiuration table
-        return config
-      end },
-      { "MattesGroeger/vim-bookmarks" },
-      { "Yazeed1s/oh-lucy.nvim" },
-      { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
-        require('telescope').load_extension('vim_bookmarks')
-      end },
-      { "ldelossa/litee.nvim", config = function()
-        require('litee.lib').setup({
-          tree = {
-            icon_set = "codicons"
-          },
-          panel = {
-            orientation = "left",
-            panel_size  = 30
-          }
-        })
-      end },
-      { "ldelossa/litee-calltree.nvim", config = function()
-        require('litee.calltree').setup({})
-      end
-      },
-      { "github/copilot.vim" },
+     },
+     { 'mattn/emmet-vim' },
+     { 'ludovicchabant/vim-gutentags' },
+     {
+       "kylechui/nvim-surround",
+       tag = "*", -- Use for stability; omit to use `main` branch for the latest features
+       config = function()
+         require("nvim-surround").setup({
+           -- Configuration here, or leave empty to use defaults
+         })
+       end
+     },
+     { 'fatih/vim-go' },
+      { 'sbdchd/neoformat' },
+      { 'petertriho/nvim-scrollbar'  },
       {
-        "ThePrimeagen/harpoon",
+        "ray-x/lsp_signature.nvim",
+        event = "BufRead",
         config = function()
-          require("harpoon").setup({
-            menu = {
-              width = vim.api.nvim_win_get_width(0) - 4,
-            }
-          })
-        end
-      },
-      {
-        "cshuaimin/ssr.nvim",
-        module = "ssr",
-        -- Calling setup is optional.
-        config = function()
-          require("ssr").setup {
-            min_width = 50,
-            min_height = 5,
-            keymaps = {
-              close = "q",
-              next_match = "n",
-              prev_match = "N",
-              replace_all = "<leader><cr>",
-            },
-          }
-        end
-      },
-      { 'alvan/vim-closetag' },
-      { 'tpope/vim-fugitive' },
-      {
-        'hkupty/iron.nvim',
-        config = function()
-
-          local iron = require("iron.core")
-          local view = require("iron.view")
-          iron.setup {
-            config = {
-              -- Whether a repl should be discarded or not
-              scratch_repl = true,
-              -- Your repl definitions come here
-              repl_definition = {
-                sh = {
-                  command = { "zsh" }
-                }
-              },
-              -- How the repl window will be displayed
-              -- See below for more information
-              repl_open_cmd = view.split(8),
-            },
-            -- Iron doesn't set keymaps by default anymore.
-            -- You can set them here or manually add keymaps to the functions in iron.core
-            keymaps = {
-              send_motion = "<space>ii",
-              visual_send = "<space>ii",
-              send_file = "<space>if",
-              send_line = "<space>i<CR>",
-              send_mark = "<space>im",
-              mark_motion = "<space>mc",
-              mark_visual = "<space>mc",
-              remove_mark = "<space>md",
-              cr = "<space>s<cr>",
-              interrupt = "<space>s<space>",
-              exit = "<space>sq",
-              clear = "<space>cl",
-            },
-            -- If the highlight is on, you can change how it looks
-            -- For the available options, check nvim_set_hl
-            highlight = {
-              italic = true
-            }
-          }
-
-
+          require("lsp_signature").setup()
         end,
       },
-      { 'FooSoft/vim-argwrap' },
-      {
-        "ThePrimeagen/refactoring.nvim",
-        requires = {
-          { "nvim-lua/plenary.nvim" },
-          { "nvim-treesitter/nvim-treesitter" }
-        }
-      },
-      { 'sam4llis/nvim-tundra',
-        config = function()
-          require('nvim-tundra').setup({
-            transparent_background = false,
-            editor = {
-              search = {},
-              substitute = {},
-            },
-            syntax = {
-              booleans = { bold = true, italic = true },
-              comments = { bold = true, italic = true },
-              conditionals = {},
-              constants = { bold = true },
-              functions = {},
-              keywords = {},
-              loops = {},
-              numbers = { bold = true },
-              operators = { bold = true },
-              punctuation = {},
-              strings = {},
-              types = { italic = true },
-            },
-            iagnostics = {
-              errors = {},
-              warnings = {},
-              information = {},
-              hints = {},
-            },
-            plugins = {
-              lsp = true,
-              treesitter = true,
-              context = true,
-              gitsigns = true,
-              telescope = true,
-            },
-            overwrite = {
-              colors = {},
-              highlights = {},
-            },
-          })
-        end
-
-      },
-      { 'mattn/emmet-vim' },
-      -- { 'MunifTanjim/prettier.nvim' },
-      { 'ludovicchabant/vim-gutentags' },
-      {
-        "kylechui/nvim-surround",
-        tag = "*", -- Use for stability; omit to use `main` branch for the latest features
-        config = function()
-          require("nvim-surround").setup({
-            -- Configuration here, or leave empty to use defaults
-          })
-        end
-      },
-      { 'bluz71/vim-nightfly-guicolors' },
-      { 'chentoast/marks.nvim' },
-      { 'fatih/vim-go' },
-      -- { 'sbdchd/neoformat' },
-      -- { 'petertriho/nvim-scrollbar'  }
-      -- { "andweeb/presence.nvim" },
-      -- {
-      --   "ray-x/lsp_signature.nvim",
-      --   event = "BufRead",
-      --   config = function()
-      --     require("lsp_signature").setup()
-      --   end,
-      -- },
     },
     -- All other entries override the setup() call for default plugins
     --
@@ -492,8 +309,9 @@ local config = {
                 vim.bo.filetype == "typescriptreact"
             then
               -- NOTE: don't format javascript files
-              vim.cmd("EslintFixAll")
-              -- vim.lsp.buf.format({ name = "eslint" }) -- works too
+              vim.lsp.buf.execute_command({command = "_typescript.organizeImports", arguments = {vim.fn.expand("%:p")}})
+              -- vim.cmd("EslintFixAll")
+              vim.lsp.buf.format({ name = "eslint" }) -- works too
               return
             elseif vim.bo.filetype == "proto" then
               local view_state = vim.fn.winsaveview()
@@ -504,13 +322,13 @@ local config = {
         }
         )
         -- NOTE: You can remove this on attach function to disable format on save
-        -- if client.resolved_capabilities.document_formatting then
-        --   vim.api.nvim_create_autocmd('BufWritePre', {
-        --     pattern = { '*.tsx', '*.ts', '*.jsx', '*.js' },
-        --     command = 'EslintFixAll',
-        --     group = vim.api.nvim_create_augroup('MyAutocmdsJavaScripFormatting', {}),
-        --   })
-        -- end
+        if client.resolved_capabilities.document_formatting then
+          vim.api.nvim_create_autocmd('BufWritePre', {
+            pattern = { '*.tsx', '*.ts', '*.jsx', '*.js' },
+            command = 'EslintFixAll',
+            group = vim.api.nvim_create_augroup('MyAutocmdsJavaScripFormatting', {}),
+          })
+        end
       end
       return config -- return final config table
     end,
@@ -519,8 +337,8 @@ local config = {
       -- Search in children of directory under cursor
       config.filesystem.window = {
         mappings = {
-          ["tf"] = "telescope_find",
-          ["tg"] = "telescope_grep"
+          ["<c-k>f"] = "telescope_find",
+          ["<c-k>g"] = "telescope_grep"
         }
       }
       config.filesystem.commands = {
@@ -648,7 +466,7 @@ local config = {
     -- first key is the mode
     n = {
       -- second key is the lefthand side of the map
-      ["<C-s>"] = { ":wa!<cr>", desc = "Save File" },
+      ["<C-s>"] = { ":wa<cr>", desc = "Save File" },
       [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { ":ToggleTerm<CR>", desc = "Open toggle term" },
       ["<C-p>"] = { "\"qp", desc = "Paste from register q" },
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
@@ -660,12 +478,14 @@ local config = {
       ['<c-`>'] = { function() require('telescope.builtin').marks({ sort_lastused = true }) end },
       ['<leader>a'] = { ":ArgWrap<cr>" },
       ['<leader>df'] = { ":GoPrintlnFileLine<CR>" }, -- TODO Make this only work in go files
+      ['<leader>nd'] = { function() vim.notifiy.dismiss() end, desc = "Dismiss notifications" },
       ['<c-s-n>'] = { ":cp<cr>" },
       ['<c-n>'] = { ":cn<cr>" },
       ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
       ['<leader>fb'] = { ":Telescope vim_bookmarks all<CR>" },
       ['<leader>fp'] = { function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
         desc = "Search in open files" },
+      ['<leader>fg'] = { ":Telescope git_status<CR>",  desc = "Telescope git diff files" },
       ['<leader>fi'] = { function()
         vim.cmd('noau normal! "zyiw"')
         require('telescope.builtin').find_files({ search_file = vim.fn.getreg("z") })
@@ -675,7 +495,7 @@ local config = {
       ['gv'] = { ":vsplit<CR>gd" },
       ['<leader>sr'] = { 'yiw:%s/<C-R>*' },
       ['<leader>ss'] = { 'yiw:s/<C-R>*/' },
-      ['<leader>ci'] = { "<Plug>(copilot-suggest)" },
+      -- ['<leader>ci'] = { "<Plug>(copilot-suggest)" },
       ['<leader>bb'] = { function() require("harpoon.mark").add_file() end },
       ['<c-1>'] = { function() require("harpoon.ui").toggle_quick_menu() end }
       -- TODO Some keybinding for search and replace word under cursor:
@@ -685,9 +505,10 @@ local config = {
     t = {
       -- setting a mapping to false will disable it
       -- ["<esc>"] = false,
-      ["<esc>"] = { "<C-\\><C-n>", desc = "To normal mode in terminal" },
-      [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { "<C-\\><C-n>:ToggleTerm<CR>",
+       ["<esc>"] = { "<C-\\><C-n>", desc = "To normal mode in terminal" },
+       [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { "<C-\\><C-n>:ToggleTerm<CR>",
         desc = "Close toggle term" },
+       -- ,
     },
     i = {
       ["<C-p>"] = { "<esc>:Telescope oldfiles<CR>", desc = "Save File" },
@@ -695,9 +516,7 @@ local config = {
           ignore_current_buffer = true })
       end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
-      ['<c-k>'] = { "<Plug>(copilot-suggest)" },
-      ['<c-j>'] = { "copilot#Accept(\"\\<CR>\")", expr = true, silent = true },
-      -- ['<c-g>'] = {"<esc>gg"},
+      ['<c-l>'] = {'copilot#Accept("<CR>")', expr = true, silent = true, noremap = true, replace_keycodes = false },
     },
 
     -- Remaps for the refactoring operations currently offered by the refactoring.nvim plugin
@@ -719,6 +538,7 @@ local config = {
   polish = function()
     -- Set key binding
     -- Set autocommands
+
     vim.api.nvim_create_augroup("packer_conf", { clear = true })
     vim.api.nvim_create_autocmd("BufWritePost", {
       desc = "Sync packer after modifying plugins.lua",
@@ -726,15 +546,20 @@ local config = {
       pattern = "plugins.lua",
       command = "source <afile> | PackerSync",
     })
-    -- vim.api.nvim_create_autocmd("CursorHold,CursorHoldI,BufLeave", {
-    --   desc = "Auto save buffer",
-    --   command = "noa update",
-    -- })
+    vim.api.nvim_create_autocmd("TextChangedI", {
+      callback = function() 
+        debouncedCopilotSuggest() 
+      end
+    })
     vim.api.nvim_create_user_command('CopyLines', function(opts)
       vim.cmd('noau visual! qaq')
       vim.cmd('g/' .. opts.args .. '/y A')
       vim.cmd('let @+ = @a')
     end, { nargs = 1 })
+
+    vim.api.nvim_create_user_command('CopyFileAndLine', function(opts)
+      vim.cmd('let @*=join([expand("%"),  line(".")], ":")')
+    end, { nargs = 0 })
 
     vim.api.nvim_create_user_command('CloseAllBuffers', function(opts)
       vim.cmd('%bd|e#')
@@ -752,9 +577,30 @@ local config = {
       vim.cmd("execute \"i\\\")\"")
 
     end, { nargs = 0 })
+
+    vim.api.nvim_create_user_command("CopySearch", function(opts)
+      local hits = {}
+
+      -- This function gets executed for each occurrence of the search pattern
+      local function replacer()
+        table.insert(hits, vim.fn.submatch(0))
+        return vim.fn.submatch(0)
+      end
+
+      -- Use the substitution command with the replacer function
+      vim.api.nvim_exec(string.format('%%s///\\=v:lua.copy_matches_neovim.replacer()//gne'), false)
+
+      -- If no register is provided, use the clipboard register "+"
+      reg = opts.reg or '+'
+
+      -- Set the contents of the chosen register to the hits
+      vim.fn.setreg(reg, table.concat(hits, '\n') .. '\n', 'l')
+    end, { range = true, register = true })
+
     -- TODO Create an autocommand for autosave
     -- context:  https://vi.stackexchange.com/questions/74/is-it-possible-to-make-vim-auto-save-files
     -- autocmd CursorHold,CursorHoldI * update
+    vim.api.nvim_set_keymap('i', '<C-/>', 'copilot#Accept("<CR>")', {expr=true, silent=true})
   end,
 }
 
