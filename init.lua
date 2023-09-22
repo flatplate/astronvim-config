@@ -97,7 +97,7 @@ local config = {
   updater = {
     remote = "origin", -- remote to use
     channel = "nightly", -- "stable" or "nightly"
-    version = "latest", -- "latest", tag name, or regex search like "v1.*" to only do updates before v2 (STABLE ONLY)
+    version = "latest", -- "latest", tag name, or regex search like "v1.*" to only do updates before v2 (STABLE ONLY)userinit
     branch = "main", -- branch name (NIGHTLY ONLY)
     commit = nil, -- commit hash (NIGHTLY ONLY)
     pin_plugins = nil, -- nil, true, false (nil will pin plugins on stable only)
@@ -187,188 +187,128 @@ local config = {
   plugins = {
     -- Add plugins, the packer syntax without the "use"
     -- p
-    toggleterm = {
-      direction = "vertical",
-      size = 80
+    -- You can disable default plugins as follows:
+    {
+      "nvim-telescope/telescope-live-grep-args.nvim",
+      lazy=false,
     },
+    { 
+      "hrsh7th/nvim-cmp",
+      -- override the options table that is used in the `require("cmp").setup()` call
+      opts = function(_, opts)
+        -- opts parameter is the default options table
+        -- the function is lazy loaded so cmp is able to be required
+        local cmp = require "cmp"
+        -- modify the mapping part of the table
+        opts.mapping["<C-i>"] = cmp.mapping.complete()
 
-    init = {
-      -- You can disable default plugins as follows:
-      ["goolord/alpha-nvim"] = { commit = "21a0f25"},
-     {"ellisonleao/gruvbox.nvim"},
-      -- You can also add new plugins here as well:
-     { "rebelot/heirline.nvim", commit = "556666a" },
-     { "prochri/telescope-all-recent.nvim", requires={"kkharji/sqlite.lua"}},
-     { "ggandor/leap.nvim", config = function() 
-        require('leap').add_default_mappings()
-     end },
-     { "MattesGroeger/vim-bookmarks" },
-     { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
-       require('telescope').load_extension('vim_bookmarks')
-     end },
-     { "github/copilot.vim" },
-     {
-       "ThePrimeagen/harpoon",
-       config = function()
-         require("harpoon").setup({
-           menu = {
-             width = vim.api.nvim_win_get_width(0) - 4,
-           }
-         })
-       end
-     },
-     { 'alvan/vim-closetag' },
-     { 'tpope/vim-fugitive' },
-     { 'FooSoft/vim-argwrap' },
-     { 'sam4llis/nvim-tundra',
-       config = function()
-         require('nvim-tundra').setup({
-           transparent_background = false,
-           editor = {
-             search = {},
-             substitute = {},
-           },
-           syntax = {
-             booleans = { bold = true, italic = true },
-             comments = { bold = true, italic = true },
-             conditionals = {},
-             constants = { bold = true },
-             functions = {},
-             keywords = {},
-             loops = {},
-             numbers = { bold = true },
-             operators = { bold = true },
-             punctuation = {},
-             strings = {},
-             types = { italic = true },
-           },
-           iagnostics = {
-             errors = {},
-             warnings = {},
-             information = {},
-             hints = {},
-           },
-           plugins = {
-             lsp = true,
-             treesitter = true,
-             context = true,
-             gitsigns = true,
-             telescope = true,
-           },
-         })
-       end
-
-     },
-     { 'mattn/emmet-vim' },
-     { 'ludovicchabant/vim-gutentags' },
-     {
-       "kylechui/nvim-surround",
-       tag = "*", -- Use for stability; omit to use `main` branch for the latest features
-       config = function()
-         require("nvim-surround").setup({
-           -- Configuration here, or leave empty to use defaults
-         })
-       end
-     },
-     { 'fatih/vim-go' },
-      { 'sbdchd/neoformat' },
-      { 'petertriho/nvim-scrollbar'  },
-      {
-        "ray-x/lsp_signature.nvim",
-        event = "BufRead",
-        config = function()
-          require("lsp_signature").setup()
-        end,
-      },
+        -- return the new table to be used
+        return opts
+      end,
     },
+    {
+      "nvim-treesitter/nvim-treesitter",
+      lazy=false,
+      config = function()
+        require'nvim-treesitter.configs'.setup {
+          incremental_selection = {
+            enable = true,
+            keymaps = {
+              init_selection = "<C-Space>", -- set to `false` to disable one of the mappings
+              node_incremental = "n",
+              scope_incremental = "m",
+              node_decremental = "N",
+              scope_decremental = "M",
+            },
+          },
+        }
+      end
+    },
+    { "HiPhish/rainbow-delimiters.nvim", lazy=false},
+    { "tpope/vim-fugitive", lazy=false},
+    {
+      "toggleterm.nvim", 
+      opts={
+
+        direction = "vertical",
+        size = 80
+      }
+    },
+    { "goolord/alpha-nvim", lazy=false},
+    {"ellisonleao/gruvbox.nvim", lazy=false, config = function() 
+      require("gruvbox").setup({
+        palette_overrides = {
+            dark0 = "#111313",
+            dark0_hard = "#111313",
+            dark1 = "#1c1f1f",
+            dark2 = "#222626",
+            dark3 = "#333939",
+            bright_red = "#f55954",
+            bright_green = "#babb56",
+            bright_yellow = "#f9bc51",
+            bright_blue = "#83a5a8",
+            bright_purple = "#d3869b",
+            bright_aqua = "#8ec07c",
+            bright_orange = "#f38d46",
+            neutral_red = "#da341d",
+            neutral_green = "#98974a",
+            neutral_yellow = "#c7a931",
+            neutral_blue = "#457598",
+            neutral_purple = "#d17296",
+            neutral_aqua = "#689d6a",
+            neutral_orange = "#d65d3e",
+            faded_red = "#FFF",
+            faded_green = "#39540e",
+            faded_yellow = "#856614",
+            faded_blue = "#033658",
+            faded_purple = "#6f2f61",
+            faded_aqua = "#225b38",
+            faded_orange = "#8e423e",
+            gray = "#828389",
+          },
+        contrast = "hard"
+    })
+    end},
+    -- You can also add new plugins here as well:
+    { "rebelot/heirline.nvim", lazy=false},
+    { "prochri/telescope-all-recent.nvim"},
+    { "ggandor/leap.nvim", config = function() 
+      require('leap').add_default_mappings()
+    end },
+    { "MattesGroeger/vim-bookmarks", lazy=false },
+    { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
+      require('telescope').load_extension('vim_bookmarks')
+    end },
+    { "github/copilot.vim", lazy=false },
+    {
+      "ThePrimeagen/harpoon",
+      config = function()
+        require("harpoon").setup({
+          menu = {
+            width = vim.api.nvim_win_get_width(0) - 4,
+          }
+        })
+      end
+    },
+    { 'alvan/vim-closetag', lazy=false },
+    { 'tpope/vim-fugitive', lazy=false },
+    { 'FooSoft/vim-argwrap', lazy=false },
+    { 'mattn/emmet-vim', lazy=false  },
+    { 'ludovicchabant/vim-gutentags', lazy=false  },
+    {
+      "kylechui/nvim-surround",
+      config = function()
+        require("nvim-surround").setup({
+          -- Configuration here, or leave empty to use defaults
+        })
+      end,
+      lazy=false,
+    },
+    { 'fatih/vim-go', lazy=false  },
+    { 'sbdchd/neoformat', lazy=false  },
+    { 'petertriho/nvim-scrollbar', lazy=false   },
     -- All other entries override the setup() call for default plugins
     --
-    ["null-ls"] = function(config)
-      local null_ls = require "null-ls"
-      -- Check supported formatters and linters
-      -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/formatting
-      -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
-      config.sources = {
-        -- Set a formatter
-        null_ls.builtins.formatting.prettierd.with({
-          filetypes = {
-            "css", "scss", "html", "json", "yaml", "markdown", "graphql", "md", "txt", "python",
-          }
-        }),
-        null_ls.builtins.formatting.rufo,
-        -- Set a linter
-        null_ls.builtins.diagnostics.rubocop,
-      }
-      -- set up null-ls's on_attach function
-      config.on_attach = function(client)
-        vim.api.nvim_create_autocmd("BufWritePre", {
-          pattern = "*",
-          callback = function()
-            if vim.bo.filetype == "typescript" or vim.bo.filetype == "javascript" or
-                vim.bo.filetype == "javascriptreact" or
-                vim.bo.filetype == "typescriptreact"
-            then
-              -- NOTE: don't format javascript files
-              vim.lsp.buf.execute_command({command = "_typescript.organizeImports", arguments = {vim.fn.expand("%:p")}})
-              -- vim.cmd("EslintFixAll")
-              vim.lsp.buf.format({ name = "eslint" }) -- works too
-              return
-            elseif vim.bo.filetype == "proto" then
-              local view_state = vim.fn.winsaveview()
-              vim.cmd("%!clang-format --assume-filename=%")
-              vim.fn.winrestview(view_state)
-            end
-          end,
-        }
-        )
-        -- NOTE: You can remove this on attach function to disable format on save
-        if client.resolved_capabilities.document_formatting then
-          vim.api.nvim_create_autocmd('BufWritePre', {
-            pattern = { '*.tsx', '*.ts', '*.jsx', '*.js' },
-            command = 'EslintFixAll',
-            group = vim.api.nvim_create_augroup('MyAutocmdsJavaScripFormatting', {}),
-          })
-        end
-      end
-      return config -- return final config table
-    end,
-    ["neo-tree"] = function(config)
-      -- TODO Add keybinding for jump to last open buffer location in tree, and disable auto jumping
-      -- Search in children of directory under cursor
-      config.filesystem.window = {
-        mappings = {
-          ["<c-k>f"] = "telescope_find",
-          ["<c-k>g"] = "telescope_grep"
-        }
-      }
-      config.filesystem.commands = {
-        telescope_find = function(state)
-          local node = state.tree:get_node()
-          local path = node:get_id()
-          require('telescope.builtin').find_files(getTelescopeOpts(state, path))
-        end,
-        telescope_grep = function(state)
-          local node = state.tree:get_node()
-          local path = node:get_id()
-          require('telescope.builtin').live_grep(getTelescopeOpts(state, path))
-        end
-      }
-      config.filesystem.filtered_items = {
-        visible = true,
-        hide_dotfiles = false,
-        hide_gitignored = false,
-      }
-      return config
-    end,
-    treesitter = {
-      ensure_installed = { "lua", "tsx", "typescript" },
-    },
-    ["nvim-lsp-installer"] = {
-      ensure_installed = { "sumneko_lua" },
-    },
-    packer = {
-      compile_path = vim.fn.stdpath "data" .. "/packer_compiled.lua",
-    },
   },
 
   -- LuaSnip Options
@@ -453,6 +393,9 @@ local config = {
       --   },
       -- },
     },
+    formatting = {
+      format_on_save = false,
+    }
   },
 
   -- Diagnostics configuration (for vim.diagnostics.config({}))
@@ -467,6 +410,8 @@ local config = {
     n = {
       -- second key is the lefthand side of the map
       ["<C-s>"] = { ":wa<cr>", desc = "Save File" },
+      ["<C-t>"] = { "A // TODO(flatplate)<esc>", desc = "Add todo" },
+      ["<C-q>"] = { "<C-w>q", desc = "Close current panel" },
       [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { ":ToggleTerm<CR>", desc = "Open toggle term" },
       ["<C-p>"] = { "\"qp", desc = "Paste from register q" },
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
@@ -481,11 +426,18 @@ local config = {
       ['<leader>nd'] = { function() vim.notifiy.dismiss() end, desc = "Dismiss notifications" },
       ['<c-s-n>'] = { ":cp<cr>" },
       ['<c-n>'] = { ":cn<cr>" },
+      ["<leader>fw"] = { function() require('telescope').extensions.live_grep_args.live_grep_args() end , desc = "Live grep with args" },
       ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
       ['<leader>fb'] = { ":Telescope vim_bookmarks all<CR>" },
       ['<leader>fp'] = { function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
         desc = "Search in open files" },
       ['<leader>fg'] = { ":Telescope git_status<CR>",  desc = "Telescope git diff files" },
+      ['<leader>ft'] = { function()
+        require('telescope.builtin').git_status({ cwd = vim.fn.expand('%:p:h') })
+      end },
+      ["<leader>fc"] = { 
+        function() require("telescope-live-grep-args.shortcuts").grep_word_under_cursor() end
+       },
       ['<leader>fi'] = { function()
         vim.cmd('noau normal! "zyiw"')
         require('telescope.builtin').find_files({ search_file = vim.fn.getreg("z") })
@@ -497,7 +449,8 @@ local config = {
       ['<leader>ss'] = { 'yiw:s/<C-R>*/' },
       -- ['<leader>ci'] = { "<Plug>(copilot-suggest)" },
       ['<leader>bb'] = { function() require("harpoon.mark").add_file() end },
-      ['<c-1>'] = { function() require("harpoon.ui").toggle_quick_menu() end }
+      ['<c-1>'] = { function() require("harpoon.ui").toggle_quick_menu() end },
+      ['<leader>gr'] = { function() require('telescope.builtin').lsp_references({layout_strategy='cursor',layout_config={width=0.99, height=0.4}}) end, desc = "Telescope LSP references" }
       -- TODO Some keybinding for search and replace word under cursor:
       -- ['<c-g>'] = {"<space>gg"}, I tried to use c-g for opening the lazy git window because escaping inside the window is tricky
       -- TODO Telescope grep in files in the quickfix list
@@ -517,6 +470,7 @@ local config = {
       end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
       ['<c-l>'] = {'copilot#Accept("<CR>")', expr = true, silent = true, noremap = true, replace_keycodes = false },
+      ['<c-i>'] ={ function() require('cmp').mapping.complete() end, desc = "Open suggestions" },
     },
 
     -- Remaps for the refactoring operations currently offered by the refactoring.nvim plugin
@@ -525,10 +479,9 @@ local config = {
       ["<leader>rf"] = { function() require('refactoring').refactor('Extract Function To File') end },
       ["<leader>rv"] = { function() require('refactoring').refactor('Extract Variable') end },
       ["<leader>ri"] = { function() require('refactoring').refactor('Inline Variable') end },
-      ["<leader>fc"] = { function()
-        vim.cmd('noau visual! "zy"')
-        require('telescope.builtin').grep_string({ search = vim.fn.getreg("z") })
-      end },
+      ["<leader>fc"] = { 
+        function() require("telescope-live-grep-args.shortcuts").grep_visual_selection() end
+       },
       ['<c-cr>'] = { function() vim.lsp.buf.range_code_action() end },
     }
   },
@@ -602,6 +555,33 @@ local config = {
     -- autocmd CursorHold,CursorHoldI * update
     vim.api.nvim_set_keymap('i', '<C-/>', 'copilot#Accept("<CR>")', {expr=true, silent=true})
   end,
+
+  highlights = {
+    init = function()
+      local get_hlgroup = require("astronvim.utils").get_hlgroup
+      -- get highlights from highlight groups
+      local normal = get_hlgroup "Normal"
+      local fg, bg = normal.fg, normal.bg
+      local bg_alt = get_hlgroup("Visual").bg
+      local green = get_hlgroup("String").fg
+      local red = get_hlgroup("Error").fg
+      -- return a table of highlights for telescope based on colors gotten from highlight groups
+      return {
+        TelescopeBorder = { fg = bg_alt, bg = bg },
+        TelescopeNormal = { bg = bg },
+        TelescopePreviewBorder = { fg = bg, bg = bg },
+        TelescopePreviewNormal = { bg = bg },
+        TelescopePreviewTitle = { fg = bg, bg = green },
+        TelescopePromptBorder = { fg = bg_alt, bg = bg_alt },
+        TelescopePromptNormal = { fg = fg, bg = bg_alt },
+        TelescopePromptPrefix = { fg = red, bg = bg_alt },
+        TelescopePromptTitle = { fg = bg, bg = red },
+        TelescopeResultsBorder = { fg = bg, bg = bg },
+        TelescopeResultsNormal = { bg = bg },
+        TelescopeResultsTitle = { fg = bg, bg = bg },
+      }
+    end
+  }
 }
 
 return config
