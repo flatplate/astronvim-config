@@ -20,6 +20,19 @@ local function getTelescopeOpts(state, path)
   }
 end
 
+local function VisualSelectError()
+  local diagnostics = vim.lsp.diagnostic.get_line_diagnostics()
+  if #diagnostics == 0 then
+    vim.api.nvim_out_write("No errors on this line\n")
+    return
+  end
+
+  local start_pos = diagnostics[1].range["start"]
+  local end_pos = diagnostics[1].range["end"]
+
+  vim.fn.cursor(end_pos.line + 1, end_pos.character + 1)
+end
+
 local DEBOUNCE_DELAY = 300
 local timer = vim.loop.new_timer()
 
@@ -38,6 +51,14 @@ function debouncedCopilotSuggest()
   )
 end
 
+local function neovideScale(amount)
+	local temp = vim.g.neovide_scale_factor + amount
+	if temp < 0.5 then
+		return
+	end
+	vim.g.neovide_scale_factor = temp
+end
+
 local function osDependentConfig(config)
   local isWindows = vim.loop.os_uname().sysname == "Windows_NT"
   if isWindows then
@@ -54,36 +75,6 @@ local config = {
     GitAdd = "",
     GitChange = "",
     GitDelete = "",
-  },
-  heirline = {
-    -- define the separators between each section
-    separators = {
-      left = { "", " " }, -- separator for the left side of the statusline
-      right = { " ", "" }, -- separator for the right side of the statusline
-    },
-    -- add new colors that can be used by heirline
-    colors = function(hl)
-      -- use helper function to get highlight group properties
-      local comment_fg = astronvim.get_hlgroup("Comment").fg
-      hl.git_branch_fg = comment_fg
-      hl.git_added = comment_fg
-      hl.git_changed = comment_fg
-      hl.git_removed = comment_fg
-      hl.blank_bg = astronvim.get_hlgroup("Folded").fg
-      hl.file_info_bg = astronvim.get_hlgroup("Visual").bg
-      hl.nav_icon_bg = astronvim.get_hlgroup("String").fg
-      hl.nav_fg = hl.nav_icon_bg
-      hl.folder_icon_bg = astronvim.get_hlgroup("Error").fg
-      return hl
-    end,
-    attributes = {
-      mode = { bold = true },
-    },
-    icon_highlights = {
-      file_icon = {
-        statusline = false,
-      },
-    },
   },
   header = {
     ' ███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗',
@@ -138,6 +129,7 @@ local config = {
       foldenable = false,
       colorcolumn = "120",
       ut = 4000,
+      makeprg = "yarn tsc \\| sed 's/(\\(.*\\),\\(.*\\)):/:\\1:\\2:/' \\| sed 's/@cresta/packages/' \\| sed 's/:\\ /\\//g'"
     },
     g = {
       mapleader = " ", -- sets vim.g.mapleader
@@ -184,6 +176,7 @@ local config = {
 
   -- Configure plugins
   -- PLUGINS
+  -- TODO Add https://github.com/chrisgrieser/nvim-early-retirement
   plugins = {
     -- Add plugins, the packer syntax without the "use"
     -- p
@@ -205,6 +198,10 @@ local config = {
         -- return the new table to be used
         return opts
       end,
+    },
+    {
+      "napmn/react-extract.nvim",
+      lazy=false,
     },
     {
       "nvim-treesitter/nvim-treesitter",
@@ -270,11 +267,10 @@ local config = {
     })
     end},
     -- You can also add new plugins here as well:
-    { "rebelot/heirline.nvim", lazy=false},
     { "prochri/telescope-all-recent.nvim"},
     { "ggandor/leap.nvim", config = function() 
       require('leap').add_default_mappings()
-    end },
+    end, lazy=false },
     { "MattesGroeger/vim-bookmarks", lazy=false },
     { "tom-anders/telescope-vim-bookmarks.nvim", config = function()
       require('telescope').load_extension('vim_bookmarks')
@@ -379,7 +375,7 @@ local config = {
         on_attach = function(client)
           client.server_capabilities.documentFormattingProvider = false
         end
-      },
+      }
       -- example for addings schemas to yamlls
       -- yamlls = {
       --   settings = {
@@ -395,6 +391,11 @@ local config = {
     },
     formatting = {
       format_on_save = false,
+    },
+    config = {
+      tsserver = {
+        single_file_support = false
+      }
     }
   },
 
@@ -408,7 +409,17 @@ local config = {
   mappings = {
     -- first key is the mode
     n = {
+      ["<C-f>"] = { function() 
+        -- organize imports
+        -- TODO Make this work with other formatters
+        vim.lsp.buf.execute_command({command = "_typescript.organizeImports", arguments = {vim.fn.expand("%:p")}})
+        -- ESLintFixAll
+        vim.defer(function() vim.cmd("EslintFixAll") end, 100)
+      end },
       -- second key is the lefthand side of the map
+      ['<leader>se'] = { function() VisualSelectError() end },
+      ["<C-=>"] = { function() neovideScale(0.1) end , desc = "Decrease scale" },
+      ["<C-->"] = { function() neovideScale(-0.1) end , desc = "Increase scale" },
       ["<C-s>"] = { ":wa<cr>", desc = "Save File" },
       ["<C-t>"] = { "A // TODO(flatplate)<esc>", desc = "Add todo" },
       ["<C-q>"] = { "<C-w>q", desc = "Close current panel" },
@@ -426,12 +437,15 @@ local config = {
       ['<leader>nd'] = { function() vim.notifiy.dismiss() end, desc = "Dismiss notifications" },
       ['<c-s-n>'] = { ":cp<cr>" },
       ['<c-n>'] = { ":cn<cr>" },
-      ["<leader>fw"] = { function() require('telescope').extensions.live_grep_args.live_grep_args() end , desc = "Live grep with args" },
+      ["<leader>fq"] = { function() require('telescope').extensions.live_grep_args.live_grep_args() end , desc = "Live grep with args" },
       ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
       ['<leader>fb'] = { ":Telescope vim_bookmarks all<CR>" },
       ['<leader>fp'] = { function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
         desc = "Search in open files" },
-      ['<leader>fg'] = { ":Telescope git_status<CR>",  desc = "Telescope git diff files" },
+      ['<leader>fg'] = {function()
+        local path = vim.fn.expand('%:p:h')
+        require('telescope.builtin').git_status(getTelescopeOpts(vim.fn.getcwd(), path))
+      end ,  desc = "Telescope git diff files" },
       ['<leader>ft'] = { function()
         require('telescope.builtin').git_status({ cwd = vim.fn.expand('%:p:h') })
       end },
@@ -475,14 +489,13 @@ local config = {
 
     -- Remaps for the refactoring operations currently offered by the refactoring.nvim plugin
     v = {
-      ["<leader>re"] = { function() require('refactoring').refactor('Extract Function') end },
-      ["<leader>rf"] = { function() require('refactoring').refactor('Extract Function To File') end },
-      ["<leader>rv"] = { function() require('refactoring').refactor('Extract Variable') end },
-      ["<leader>ri"] = { function() require('refactoring').refactor('Inline Variable') end },
+      ["<leader>re"] = { function(opts) require("react-extract").extract_to_new_file(opts) end },
+      ["<leader>rf"] = { function(opts) require("react-extract").extract_to_current_file(opts) end },
       ["<leader>fc"] = { 
         function() require("telescope-live-grep-args.shortcuts").grep_visual_selection() end
        },
       ['<c-cr>'] = { function() vim.lsp.buf.range_code_action() end },
+
     }
   },
 
@@ -491,6 +504,8 @@ local config = {
   polish = function()
     -- Set key binding
     -- Set autocommands
+    -- TODO Add autocmd to switch makeprg to "set makeprg=yarn\ tsc\ \\\|\ sed\ 's/(\\(.*\\),\\(.*\\)):/:\\1:\\2:/'\ \\\|\ sed\ 's/@cresta/packages/'\ \\\|\ sed\ 's/:\ src/\\/src/'"
+    -- possible also cd into director if the file is in the director repo
 
     vim.api.nvim_create_augroup("packer_conf", { clear = true })
     vim.api.nvim_create_autocmd("BufWritePost", {
@@ -554,6 +569,13 @@ local config = {
     -- context:  https://vi.stackexchange.com/questions/74/is-it-possible-to-make-vim-auto-save-files
     -- autocmd CursorHold,CursorHoldI * update
     vim.api.nvim_set_keymap('i', '<C-/>', 'copilot#Accept("<CR>")', {expr=true, silent=true})
+
+    vim.cmd([[
+      augroup autosave_buffer
+        au!
+        au FocusLost * :wa
+      augroup END
+    ]])
   end,
 
   highlights = {
