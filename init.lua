@@ -19,6 +19,8 @@ local function getTelescopeOpts(state, path)
     -- end
   }
 end
+local counter = 0
+
 
 local function VisualSelectError()
   local diagnostics = vim.lsp.diagnostic.get_line_diagnostics()
@@ -180,7 +182,119 @@ local config = {
   plugins = {
     -- Add plugins, the packer syntax without the "use"
     -- p
+    --
     -- You can disable default plugins as follows:
+    {
+      "CopilotC-Nvim/CopilotChat.nvim",
+      opts = {
+        show_help = "yes", -- Show help text for CopilotChatInPlace, default: yes
+        debug = false, -- Enable or disable debug mode, the log file will be in ~/.local/state/nvim/CopilotChat.nvim.log
+        disable_extra_info = 'no', -- Disable extra information (e.g: system prompt) in the response.
+        -- proxy = "socks5://127.0.0.1:3000", -- Proxies requests via https or socks.
+      },
+      build = function()
+        vim.notify("Please update the remote plugins by running ':UpdateRemotePlugins', then restart Neovim.")
+      end,
+      event = "VeryLazy",
+      
+      "CopilotC-Nvim/CopilotChat.nvim",
+    opts = {
+      show_help = "yes", -- Show help text for CopilotChatInPlace, default: yes
+      debug = false, -- Enable or disable debug mode, the log file will be in ~/.local/state/nvim/CopilotChat.nvim.log
+      disable_extra_info = 'no', -- Disable extra information (e.g: system prompt) in the response.
+      -- proxy = "socks5://127.0.0.1:3000", -- Proxies requests via https or socks.
+    },
+    build = function()
+      vim.notify("Please update the remote plugins by running ':UpdateRemotePlugins', then restart Neovim.")
+    end,
+    lazy=false,
+    keys = {
+      { "<leader>cce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
+      { "<leader>cct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
+      {
+        "<leader>ccv",
+        ":CopilotChatVisual",
+        mode = "x",
+        desc = "CopilotChat - Open in vertical split",
+      },
+      {
+        "<leader>ccx",
+        ":CopilotChatInPlace<cr>",
+        mode = "x",
+        desc = "CopilotChat - Run in-place code",
+      },
+    },keys = {
+        { "<leader>cce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
+        { "<leader>cct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
+        {
+          "<leader>ccv",
+          ":CopilotChatVisual",
+          mode = "x",
+          desc = "CopilotChat - Open in vertical split",
+        },
+        {
+          "<leader>ccx",
+          ":CopilotChatInPlace<cr>",
+          mode = "x",
+          desc = "CopilotChat - Run in-place code",
+        },
+      },
+    }, 
+      {
+        "rest-nvim/rest.nvim",
+        dependencies = { { "nvim-lua/plenary.nvim" } },
+        config = function()
+          require("rest-nvim").setup({
+            -- Open request results in a horizontal split
+            result_split_horizontal = false,
+            -- Keep the http file buffer above|left when split horizontal|vertical
+            result_split_in_place = false,
+            -- stay in current windows (.http file) or change to results window (default)
+            stay_in_current_window_after_split = false,
+            -- Skip SSL verification, useful for unknown certificates
+          skip_ssl_verification = false,
+          -- Encode URL before making request
+          encode_url = true,
+          -- Highlight request on run
+          highlight = {
+            enabled = true,
+            timeout = 150,
+          },
+          result = {
+            -- toggle showing URL, HTTP info, headers at top the of result window
+            show_url = true,
+            -- show the generated curl command in case you want to launch
+            -- the same request via the terminal (can be verbose)
+            show_curl_command = false,
+            show_http_info = true,
+            show_headers = true,
+            -- table of curl `--write-out` variables or false if disabled
+            -- for more granular control see Statistics Spec
+            show_statistics = false,
+            -- executables or functions for formatting response body [optional]
+            -- set them to false if you want to disable them
+            formatters = {
+              json = "jq",
+              html = function(body)
+                return vim.fn.system({"tidy", "-i", "-q", "-"}, body)
+              end
+            },
+          },
+          -- Jump to request line on run
+          jump_to_request = false,
+          env_file = '.env',
+          custom_dynamic_variables = {},
+          yank_dry_run = true,
+          search_back = true,
+        })
+      end,
+      lazy=false,
+    },
+    {
+      'glacambre/firenvim',
+      run = function() vim.fn['firenvim#install'](0) end ,
+      lazy=false,
+    },
     {
       "nvim-telescope/telescope-live-grep-args.nvim",
       lazy=false,
@@ -235,36 +349,36 @@ local config = {
     {"ellisonleao/gruvbox.nvim", lazy=false, config = function() 
       require("gruvbox").setup({
         palette_overrides = {
-            dark0 = "#111313",
-            dark0_hard = "#111313",
-            dark1 = "#1c1f1f",
-            dark2 = "#222626",
-            dark3 = "#333939",
-            bright_red = "#f55954",
-            bright_green = "#babb56",
-            bright_yellow = "#f9bc51",
-            bright_blue = "#83a5a8",
-            bright_purple = "#d3869b",
-            bright_aqua = "#8ec07c",
-            bright_orange = "#f38d46",
-            neutral_red = "#da341d",
-            neutral_green = "#98974a",
-            neutral_yellow = "#c7a931",
-            neutral_blue = "#457598",
-            neutral_purple = "#d17296",
-            neutral_aqua = "#689d6a",
-            neutral_orange = "#d65d3e",
-            faded_red = "#FFF",
-            faded_green = "#39540e",
-            faded_yellow = "#856614",
-            faded_blue = "#033658",
-            faded_purple = "#6f2f61",
-            faded_aqua = "#225b38",
-            faded_orange = "#8e423e",
-            gray = "#828389",
-          },
+          dark0 = "#111313",
+          dark0_hard = "#111313",
+          dark1 = "#1c1f1f",
+          dark2 = "#222626",
+          dark3 = "#333939",
+          bright_red = "#f55954",
+          bright_green = "#babb56",
+          bright_yellow = "#f9bc51",
+          bright_blue = "#83a5a8",
+          bright_purple = "#d3869b",
+          bright_aqua = "#8ec07c",
+          bright_orange = "#f38d46",
+          neutral_red = "#da341d",
+          neutral_green = "#98974a",
+          neutral_yellow = "#c7a931",
+          neutral_blue = "#457598",
+          neutral_purple = "#d17296",
+          neutral_aqua = "#689d6a",
+          neutral_orange = "#d65d3e",
+          faded_red = "#FFF",
+          faded_green = "#39540e",
+          faded_yellow = "#856614",
+          faded_blue = "#033658",
+          faded_purple = "#6f2f61",
+          faded_aqua = "#225b38",
+          faded_orange = "#8e423e",
+          gray = "#828389",
+        },
         contrast = "hard"
-    })
+      })
     end},
     -- You can also add new plugins here as well:
     { "prochri/telescope-all-recent.nvim"},
@@ -428,7 +542,7 @@ local config = {
       ["<C-y>"] = { "\"qy", desc = "Copy to register q" },
       ['<c-cr>'] = { function() vim.lsp.buf.code_action() end },
       ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true,
-          ignore_current_buffer = true })
+        ignore_current_buffer = true })
       end },
       ['<c-tab>'] = { ":b#<cr>" },
       ['<c-`>'] = { function() require('telescope.builtin').marks({ sort_lastused = true }) end },
@@ -441,7 +555,7 @@ local config = {
       ['<leader>ff'] = { ":Telescope find_files hidden=true<CR>" },
       ['<leader>fb'] = { ":Telescope vim_bookmarks all<CR>" },
       ['<leader>fp'] = { function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
-        desc = "Search in open files" },
+      desc = "Search in open files" },
       ['<leader>fg'] = {function()
         local path = vim.fn.expand('%:p:h')
         require('telescope.builtin').git_status(getTelescopeOpts(vim.fn.getcwd(), path))
@@ -451,7 +565,7 @@ local config = {
       end },
       ["<leader>fc"] = { 
         function() require("telescope-live-grep-args.shortcuts").grep_word_under_cursor() end
-       },
+      },
       ['<leader>fi'] = { function()
         vim.cmd('noau normal! "zyiw"')
         require('telescope.builtin').find_files({ search_file = vim.fn.getreg("z") })
@@ -472,18 +586,27 @@ local config = {
     t = {
       -- setting a mapping to false will disable it
       -- ["<esc>"] = false,
-       ["<esc>"] = { "<C-\\><C-n>", desc = "To normal mode in terminal" },
-       [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { "<C-\\><C-n>:ToggleTerm<CR>",
-        desc = "Close toggle term" },
-       -- ,
+      ["<esc>"] = { "<C-\\><C-n>", desc = "To normal mode in terminal" },
+      [osDependentConfig({ windows = "<C-\\>", default = "<C-'>" })] = { "<C-\\><C-n>:ToggleTerm<CR>",
+      desc = "Close toggle term" },
+      -- ,
     },
     i = {
       ["<C-p>"] = { "<esc>:Telescope oldfiles<CR>", desc = "Save File" },
       ['<c-s-tab>'] = { function() require('telescope.builtin').buffers({ sort_lastused = true,
-          ignore_current_buffer = true })
+        ignore_current_buffer = true })
       end },
       ['<c-tab>'] = { "<esc>:b#<cr>a" },
-      ['<c-l>'] = {'copilot#Accept("<CR>")', expr = true, silent = true, noremap = true, replace_keycodes = false },
+      ['<c-l>'] = {function() 
+        -- local rest = require("rest-nvim")
+
+        result = vim.fn["copilot#Accept"]('<CR>')
+        -- should be utf-8 decoded
+        -- local curl = 'curl http://localhost:5000/accept'
+
+        -- os.execute(curl)
+        return result
+      end , expr = true, silent = true, noremap = true, replace_keycodes = false },
       ['<c-i>'] ={ function() require('cmp').mapping.complete() end, desc = "Open suggestions" },
     },
 
@@ -493,9 +616,8 @@ local config = {
       ["<leader>rf"] = { function(opts) require("react-extract").extract_to_current_file(opts) end },
       ["<leader>fc"] = { 
         function() require("telescope-live-grep-args.shortcuts").grep_visual_selection() end
-       },
+      },
       ['<c-cr>'] = { function() vim.lsp.buf.range_code_action() end },
-
     }
   },
 
@@ -571,10 +693,10 @@ local config = {
     vim.api.nvim_set_keymap('i', '<C-/>', 'copilot#Accept("<CR>")', {expr=true, silent=true})
 
     vim.cmd([[
-      augroup autosave_buffer
-        au!
-        au FocusLost * :wa
-      augroup END
+    augroup autosave_buffer
+    au!
+    au FocusLost * :wa
+    augroup END
     ]])
   end,
 
